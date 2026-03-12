@@ -11,7 +11,7 @@ import br.com.gestao.repository.UsuarioRepository;
 public class UsuarioService implements UserDetailsService {
 
 	private final UsuarioRepository usuarioRepository;
-	
+
 	public UsuarioService(UsuarioRepository usuarioRepository) {
 		this.usuarioRepository = usuarioRepository;
 	}

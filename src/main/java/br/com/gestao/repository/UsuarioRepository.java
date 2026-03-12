@@ -8,7 +8,7 @@ import org.springframework.stereotype.Repository;
 import br.com.gestao.entity.Usuario;
 
 @Repository
-public interface UsuarioRepository extends JpaRepository<Usuario, Long>{
+public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
 
 	Optional<Usuario> findByUsuario(String usuario);
 

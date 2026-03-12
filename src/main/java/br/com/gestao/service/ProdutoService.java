@@ -21,9 +21,7 @@ public class ProdutoService {
 	private final MarcaRepository marcaRepository;
 	private final CategoriaRepository categoriaRepository;
 
-	public ProdutoService(
-			ProdutoRepository produtoRepository,
-			MarcaRepository marcaRepository,
+	public ProdutoService(ProdutoRepository produtoRepository, MarcaRepository marcaRepository,
 			CategoriaRepository categoriaRepository) {
 		this.produtoRepository = produtoRepository;
 		this.marcaRepository = marcaRepository;
@@ -69,10 +67,8 @@ public class ProdutoService {
 						variacaoForm.getPreco() != null ? variacaoForm.getPreco() : java.math.BigDecimal.ZERO);
 
 				Estoque estoque = new Estoque();
-				estoque.setQuantidade(
-						variacaoForm.getQuantidade() != null ? variacaoForm.getQuantidade() : 0);
-				estoque.setEstoqueMinimo(
-						variacaoForm.getEstoqueMinimo() != null ? variacaoForm.getEstoqueMinimo() : 0);
+				estoque.setQuantidade(variacaoForm.getQuantidade() != null ? variacaoForm.getQuantidade() : 0);
+				estoque.setEstoqueMinimo(variacaoForm.getEstoqueMinimo() != null ? variacaoForm.getEstoqueMinimo() : 0);
 
 				variacao.setEstoque(estoque);
 				estoque.setProdutoVariacao(variacao);
@@ -85,14 +81,9 @@ public class ProdutoService {
 	}
 
 	private boolean variacaoVazia(ProdutoVariacaoForm form) {
-		return isBlank(form.getSku())
-				&& isBlank(form.getCodigoBarra())
-				&& isBlank(form.getCor())
-				&& isBlank(form.getTamanho())
-				&& form.getCusto() == null
-				&& form.getPreco() == null
-				&& form.getQuantidade() == null
-				&& form.getEstoqueMinimo() == null;
+		return isBlank(form.getSku()) && isBlank(form.getCodigoBarra()) && isBlank(form.getCor())
+				&& isBlank(form.getTamanho()) && form.getCusto() == null && form.getPreco() == null
+				&& form.getQuantidade() == null && form.getEstoqueMinimo() == null;
 	}
 
 	private String trimToNull(String valor) {
