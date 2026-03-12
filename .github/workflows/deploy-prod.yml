@@ -1,50 +1,80 @@
-name: CI-CD Sistema Gestao
+name: Deploy Prod
 
 on:
   push:
-    branches:
-      - main
+    branches: [ "main" ]
+  workflow_dispatch:
+
+env:
+  IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/sistema-gestao
 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
 
+    permissions:
+      contents: read
+      packages: write
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Configurar Java 21
+      - name: Setup Java
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '21'
+          cache: maven
 
-      - name: Dar permissão ao Maven Wrapper
-        run: chmod +x mvnw
+      - name: Build jar
+        run: mvn -B clean package -DskipTests
 
-      - name: Build do projeto
-        run: ./mvnw clean package -DskipTests
+      - name: Inspecionar jar
+        run: |
+          echo "=== arquivos application ==="
+          jar tf target/sistema-gestao.jar | grep application || true
+          echo "=== driver postgresql ==="
+          jar tf target/sistema-gestao.jar | grep -i postgresql || true
 
-      - name: Login no Docker Hub
+      - name: Login no GHCR
         uses: docker/login-action@v3
         with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build da imagem
-        run: docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/sistema-gestao:latest .
-
-      - name: Push da imagem
-        run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/sistema-gestao:latest
-
-      - name: Deploy na VPS
-        uses: appleboy/ssh-action@v1.0.3
+      - name: Metadata da imagem
+        id: meta
+        uses: docker/metadata-action@v5
         with:
-          host: ${{ secrets.VPS_HOST }}
-          username: ${{ secrets.VPS_USER }}
-          key: ${{ secrets.VPS_SSH_KEY }}
-          script: |
+          images: ${{ env.IMAGE_NAME }}
+          tags: |
+            type=raw,value=latest
+            type=sha
+
+      - name: Build e push da imagem
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+
+      - name: Preparar SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.PROD_SSH_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -H "${{ secrets.PROD_HOST }}" >> ~/.ssh/known_hosts
+
+      - name: Deploy no servidor
+        run: |
+          ssh -i ~/.ssh/id_ed25519 ${{ secrets.PROD_USER }}@${{ secrets.PROD_HOST }} << EOF
+            set -e
             cd /opt/sistema-gestao
+            echo "${{ secrets.GHCR_PAT }}" | docker login ghcr.io -u "${{ github.repository_owner }}" --password-stdin
             docker compose pull
-            docker compose up -d
-            docker image prune -af
+            docker compose up -d --force-recreate
+            docker image prune -f
+          EOF

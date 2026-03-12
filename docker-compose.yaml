@@ -1,0 +1,19 @@
+services:
+  app:
+    image: ghcr.io/radjunior/sistema-gestao:latest
+    container_name: app-sistema-gestao
+    restart: always
+    environment:
+      SERVER_PORT: 8080
+      SPRING_PROFILES_ACTIVE: prd
+      DB_URL: jdbc:postgresql://postgres-prod:5432/sistema-gestao
+      DB_USER: gestao
+      DB_PASS: "PhN){^80{RPm~9"
+      DB_DRIVER: org.postgresql.Driver
+      JAVA_TOOL_OPTIONS: "-Djava.net.preferIPv4Stack=true"
+    networks:
+      - vnet-radjunior
+
+networks:
+  vnet-radjunior:
+    external: true
