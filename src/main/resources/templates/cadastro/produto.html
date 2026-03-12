@@ -1,0 +1,134 @@
+<html lang="pt-br" 
+	xmlns:th="http://www.thymeleaf.org"
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorate="~{template}">
+      
+<head>
+	<title>Produto</title>
+	<link rel="stylesheet" th:href="@{/css/produto.css}" type="text/css">
+</head>
+
+<body>
+	<div layout:fragment="conteudo">
+		<div class="container">
+		
+			<form th:action="@{/cadastro/produto}" th:object="${produtoForm}" method="post">
+	
+			    <div class="card mb-4">
+			        <div class="card-header">Dados Gerais</div>
+			        <div class="card-body row g-3">
+			
+			            <div class="col-md-6">
+			                <label class="form-label">Nome</label>
+			                <input type="text" class="form-control" th:field="*{nome}">
+			            </div>
+			
+			            <div class="col-md-3">
+			                <label class="form-label">Marca</label>
+			                <select class="form-select" th:field="*{marcaId}">
+			                    <option value="">Selecione</option>
+			                    <option th:each="marca : ${marcas}"
+			                            th:value="${marca.id}"
+			                            th:text="${marca.nome}">
+			                    </option>
+			                </select>
+			            </div>
+			
+			            <div class="col-md-3">
+			                <label class="form-label">Categoria</label>
+			                <select class="form-select" th:field="*{categoriaId}">
+			                    <option value="">Selecione</option>
+			                    <option th:each="categoria : ${categorias}"
+			                            th:value="${categoria.id}"
+			                            th:text="${categoria.nome}">
+			                    </option>
+			                </select>
+			            </div>
+			
+			            <div class="col-md-9">
+			                <label class="form-label">Descrição</label>
+			                <textarea class="form-control" rows="3" th:field="*{descricao}"></textarea>
+			            </div>
+			
+			            <div class="col-md-3">
+			                <label class="form-label">Situação</label>
+			                <select class="form-select" th:field="*{ativo}">
+			                    <option th:value="true">Ativo</option>
+			                    <option th:value="false">Inativo</option>
+			                </select>
+			            </div>
+			
+			        </div>
+			    </div>
+			
+			    <div class="card mb-4">
+			        <div class="card-header">Variações</div>
+			        <div class="card-body">
+			
+			            <div class="table-responsive">
+			                <table class="table table-bordered align-middle">
+			                    <thead>
+			                        <tr>
+			                            <th>SKU</th>
+			                            <th>Cód. Barra</th>
+			                            <th>Cor</th>
+			                            <th>Tamanho</th>
+			                            <th>Custo</th>
+			                            <th>Preço</th>
+			                            <th>Qtd.</th>
+			                            <th>Est. Mínimo</th>
+			                        </tr>
+			                    </thead>
+			                    <tbody>
+			                        <tr th:each="variacao, stat : *{variacoes}">
+			                            <td>
+			                                <input type="text" class="form-control"
+			                                       th:field="*{variacoes[__${stat.index}__].sku}">
+			                            </td>
+			                            <td>
+			                                <input type="text" class="form-control"
+			                                       th:field="*{variacoes[__${stat.index}__].codigoBarra}">
+			                            </td>
+			                            <td>
+			                                <input type="text" class="form-control"
+			                                       th:field="*{variacoes[__${stat.index}__].cor}">
+			                            </td>
+			                            <td>
+			                                <input type="text" class="form-control"
+			                                       th:field="*{variacoes[__${stat.index}__].tamanho}">
+			                            </td>
+			                            <td>
+			                                <input type="number" step="0.01" class="form-control"
+			                                       th:field="*{variacoes[__${stat.index}__].custo}">
+			                            </td>
+			                            <td>
+			                                <input type="number" step="0.01" class="form-control"
+			                                       th:field="*{variacoes[__${stat.index}__].preco}">
+			                            </td>
+			                            <td>
+			                                <input type="number" class="form-control"
+			                                       th:field="*{variacoes[__${stat.index}__].quantidade}">
+			                            </td>
+			                            <td>
+			                                <input type="number" class="form-control"
+			                                       th:field="*{variacoes[__${stat.index}__].estoqueMinimo}">
+			                            </td>
+			                        </tr>
+			                    </tbody>
+			                </table>
+			            </div>
+			
+			        </div>
+			    </div>
+			
+			    <div class="d-flex gap-2">
+			        <button type="submit" class="btn btn-primary">Salvar</button>
+			        <a th:href="@{/home}" class="btn btn-outline-secondary">Cancelar</a>
+			    </div>
+			
+			</form>
+		</div>
+		<script type="module" th:src="@{/js/produto.js}"></script>
+	</div>
+</body>
+</html>

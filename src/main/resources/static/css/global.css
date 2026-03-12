@@ -1,0 +1,12 @@
+body {
+	font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+	background-color: #f4f6fb !important;
+	color: #1f2937 !important;
+}
+
+.toast {
+	position: absolute;
+	top: 1rem;
+	right: 1rem;
+	z-index: 1055;
+}

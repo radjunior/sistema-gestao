@@ -1,0 +1,22 @@
+<html lang="pt-br" 
+	xmlns:th="http://www.thymeleaf.org"
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorate="~{template}">
+
+<head>
+    <title>Erro!</title>
+	<link rel="stylesheet" th:href="@{/css/error.css}" type="text/css">
+</head>
+
+<body>
+	<div layout:fragment="conteudo" class="body-error">
+	    <div class="card-error">
+	        <h1 class="h1-error">Erro</h1>
+	        <p class="p-error">Ocorreu um erro não identificado!</p>
+	        <a class="a-error" th:href="@{/home}">Voltar ao Início</a>
+	        <div class="footer-error">Se você acredita que isso é um erro, entre em contato com o suporte.</div>
+	    </div>
+    </div>
+</body>
+
+</html>

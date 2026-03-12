@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html 	xmlns:th="http://www.thymeleaf.org"
+		xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <link rel="stylesheet" href="css/login.css">
+    <link rel="shortcut icon" href="assets/favicon.ico" type="image/x-icon">
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-box">
+            <h1>Sistema de Gestão</h1>
+            <h4>Entre com suas credenciais</h4>
+            <div class="alert alert-error" role="alert" th:if="${param.error}">
+                <span class="alert-icon">⚠</span>
+                <span class="alert-text">Usuário ou Senha inválida!</span>
+            </div>
+            <div class="alert alert-info" role="alert" th:if="${param.logout}">
+                <span class="alert-icon">ℹ</span>
+                <span class="alert-text">Você foi desconectado!</span>
+            </div>
+            <form th:action="@{/login}" method="post">
+                <div class="form-group">
+                    <label for="username">Usuário</label>
+                    <input type="text" id="username" name="username" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Senha</label>
+                    <input type="password" id="password" name="password" required>
+                </div>
+                <button type="submit" class="btn-login">Entrar</button>
+            </form>
+        </div>
+    </div>
+    <script src="js/login.js"></script>
+</body>
+</html>
