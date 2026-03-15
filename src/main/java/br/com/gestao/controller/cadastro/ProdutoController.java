@@ -78,7 +78,7 @@ public class ProdutoController extends DefaultController {
 			return REDIRECT;
 		} catch (Exception e) {
 			e.printStackTrace();
-			if (e.getMessage().contains("violates foreign key constraint")) {
+			if (e.getMessage() != null && e.getMessage().contains("violates foreign key constraint")) {
 				showError(m, "Não é possível excluir essa Produto pois ela está relacionada com outra entidade!");
 			} else {
 				showError(m, e.getMessage());

@@ -32,19 +32,19 @@ public class ProdutoService {
 		if (produto == null) {
 			throw new Exception("Produto inválido");
 		}
-		if (produto.getNome().isBlank()) {
+		if (produto.getNome() == null || produto.getNome().isBlank()) {
 			throw new Exception("Nome inválido");
 		}
-		if (produto.getMarca().getId() == null) {
+		if (produto.getMarca() == null || produto.getMarca().getId() == null) {
 			throw new Exception("Marca inválida");
 		}
-		if (produto.getCategoria().getId() == null) {
+		if (produto.getCategoria() == null || produto.getCategoria().getId() == null) {
 			throw new Exception("Categoria inválida");
 		}
-		if (produto.getGrupo().getId() == null) {
+		if (produto.getGrupo() == null || produto.getGrupo().getId() == null) {
 			throw new Exception("Grupo inválido");
 		}
-		if (produto.getSubgrupo().getId() == null) {
+		if (produto.getSubgrupo() == null || produto.getSubgrupo().getId() == null) {
 			throw new Exception("Subgrupo inválido");
 		}
 		if (produto.getId() == null && produtoRepository.existsByNome(produto.getNome())) {

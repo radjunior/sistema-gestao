@@ -27,8 +27,6 @@ public class SecurityConfig {
 		}).rememberMe(me -> {
 			me.key("lembrarDeMim");
 			me.alwaysRemember(true);
-		}).csrf(csrf -> {
-			csrf.disable();
 		}).build();
 	}
 

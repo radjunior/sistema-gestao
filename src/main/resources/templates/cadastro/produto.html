@@ -305,10 +305,10 @@
 										</td>
 										<td th:text="${p.id}"></td>
 										<td th:text="${p.nome}"></td>
-										<td th:text="${p.marca.nome}"></td>
-										<td th:text="${p.categoria.nome}"></td>
-										<td th:text="${p.grupo.nome}"></td>
-										<td th:text="${p.subgrupo.nome}"></td>
+										<td th:text="${p.marca != null ? p.marca.nome : ''}"></td>
+										<td th:text="${p.categoria != null ? p.categoria.nome : ''}"></td>
+										<td th:text="${p.grupo != null ? p.grupo.nome : ''}"></td>
+										<td th:text="${p.subgrupo != null ? p.subgrupo.nome : ''}"></td>
 										<td th:text="${p.ativo ? 'Sim' : 'Não'}"></td>
 										<td>
 											<a th:href="@{/cadastro/produto(id=${p.id})}" class="btn btn-primary">
@@ -372,10 +372,10 @@
 																</a>
 															</td>
 															<td style="text-align: end;">
-																<form th:action="@{/cadastro/produto/excluir}" method="post">
-																	<input type="hidden" name="id" th:value="${p.id}">
+																<form th:action="@{/cadastro/produto-variacao/excluir}" method="post">
+																	<input type="hidden" name="id" th:value="${v.id}">
 																	<button type="submit"
-																	        th:data-nome="${p.nome}"
+																	        th:data-nome="${v.sku}"
 																	        class="btn btn-danger"
 																	        onclick="return confirmarExclusao(this)">
 																		<i class="bi bi-trash3-fill"></i>

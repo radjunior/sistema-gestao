@@ -62,7 +62,7 @@ public class CategoriaController extends DefaultController {
 			return REDIRECT;
 		} catch (Exception e) {
 			e.printStackTrace();
-			if (e.getMessage().contains("violates foreign key constraint")) {
+			if (e.getMessage() != null && e.getMessage().contains("violates foreign key constraint")) {
 				showError(model, "Não é possível excluir essa Categoria pois ela está relacionada com outra entidade!");
 			} else {
 				showError(model, e.getMessage());
