@@ -61,4 +61,10 @@ public class Estoque extends EntityAudit {
 		this.estoqueMinimo = estoqueMinimo;
 	}
 
+	@Override
+	public String toString() {
+		return "Estoque [id=" + id + ", produtoVariacao=" + produtoVariacao + ", quantidade=" + quantidade
+				+ ", estoqueMinimo=" + estoqueMinimo + "]";
+	}
+
 }

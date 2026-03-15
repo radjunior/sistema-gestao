@@ -2,6 +2,8 @@ package br.com.gestao.entity;
 
 import java.math.BigDecimal;
 
+import org.springframework.format.annotation.NumberFormat;
+
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -37,9 +39,15 @@ public class ProdutoVariacao extends EntityAudit {
 	private String tamanho;
 
 	@Column(nullable = false, precision = 15, scale = 2)
+	@NumberFormat
 	private BigDecimal custo = BigDecimal.ZERO;
 
 	@Column(nullable = false, precision = 15, scale = 2)
+	@NumberFormat
+	private BigDecimal margem;
+
+	@Column(nullable = false, precision = 15, scale = 2)
+	@NumberFormat
 	private BigDecimal preco = BigDecimal.ZERO;
 
 	@OneToOne(mappedBy = "produtoVariacao", cascade = CascadeType.ALL, orphanRemoval = true)
@@ -114,6 +122,25 @@ public class ProdutoVariacao extends EntityAudit {
 
 	public void setEstoque(Estoque estoque) {
 		this.estoque = estoque;
+	}
+
+	public BigDecimal getMargem() {
+		return margem;
+	}
+
+	public void setMargem(BigDecimal margem) {
+		this.margem = margem;
+	}
+
+	public Estoque getEstoque() {
+		return estoque;
+	}
+
+	@Override
+	public String toString() {
+		return "ProdutoVariacao [id=" + id + ", produto=" + produto + ", sku=" + sku + ", codigoBarra=" + codigoBarra
+				+ ", cor=" + cor + ", tamanho=" + tamanho + ", custo=" + custo + ", preco=" + preco + ", estoque="
+				+ estoque + "]";
 	}
 
 }

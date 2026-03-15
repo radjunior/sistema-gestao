@@ -12,6 +12,7 @@ public class Marca extends EntityAudit {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
+
 	@Column(nullable = false, unique = true, length = 100)
 	private String nome;
 
@@ -33,4 +34,10 @@ public class Marca extends EntityAudit {
 	public void setNome(String nome) {
 		this.nome = nome;
 	}
+
+	@Override
+	public String toString() {
+		return "Marca [id=" + id + ", nome=" + nome + "]";
+	}
+
 }

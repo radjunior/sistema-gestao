@@ -1,0 +1,20 @@
+#card-cad-grupo,
+#card-cad-subgrupo,
+#div-grupos,
+#div-subgrupos {
+	display: none;
+}
+
+html[data-tab="grupo"] #card-cad-grupo,
+html[data-tab="grupo"] #div-grupos {
+	display: block;
+}
+
+html[data-tab="subgrupo"] #card-cad-subgrupo,
+html[data-tab="subgrupo"] #div-subgrupos {
+	display: block;
+}
+
+html.js-loading .nav-tabs {
+	visibility: hidden;
+}

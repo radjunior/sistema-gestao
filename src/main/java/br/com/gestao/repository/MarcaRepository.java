@@ -8,4 +8,6 @@ import br.com.gestao.entity.Marca;
 @Repository
 public interface MarcaRepository extends JpaRepository<Marca, Long> {
 
+	boolean existsByNome(String nome);
+
 }

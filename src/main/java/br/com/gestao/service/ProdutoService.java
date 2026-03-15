@@ -1,100 +1,184 @@
 package br.com.gestao.service;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.util.List;
+
 import org.springframework.stereotype.Service;
 
-import br.com.gestao.entity.Categoria;
-import br.com.gestao.entity.Estoque;
-import br.com.gestao.entity.Marca;
 import br.com.gestao.entity.Produto;
 import br.com.gestao.entity.ProdutoVariacao;
-import br.com.gestao.entity.form.ProdutoForm;
-import br.com.gestao.entity.form.ProdutoVariacaoForm;
-import br.com.gestao.repository.CategoriaRepository;
-import br.com.gestao.repository.MarcaRepository;
 import br.com.gestao.repository.ProdutoRepository;
-import jakarta.transaction.Transactional;
+import br.com.gestao.repository.ProdutoVariacaoRepository;
+import br.com.gestao.util.SkuUtil;
+import jakarta.persistence.EntityNotFoundException;
 
 @Service
 public class ProdutoService {
 
 	private final ProdutoRepository produtoRepository;
-	private final MarcaRepository marcaRepository;
-	private final CategoriaRepository categoriaRepository;
+	private final ProdutoVariacaoRepository variacaoRepository;
 
-	public ProdutoService(ProdutoRepository produtoRepository, MarcaRepository marcaRepository,
-			CategoriaRepository categoriaRepository) {
+	public ProdutoService(ProdutoRepository produtoRepository, ProdutoVariacaoRepository variacaoRepository) {
 		this.produtoRepository = produtoRepository;
-		this.marcaRepository = marcaRepository;
-		this.categoriaRepository = categoriaRepository;
+		this.variacaoRepository = variacaoRepository;
 	}
 
-	@Transactional
-	public Produto salvar(ProdutoForm form) {
-		Produto produto = toEntity(form);
-		return produtoRepository.save(produto);
+	public Produto consultarProdutoPorId(Long id) {
+		return produtoRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("Produto não encontrado"));
 	}
 
-	private Produto toEntity(ProdutoForm form) {
-		Produto produto = new Produto();
+	public void salvarProduto(Produto produto) throws Exception {
+		if (produto == null) {
+			throw new Exception("Produto inválido");
+		}
+		if (produto.getNome().isBlank()) {
+			throw new Exception("Nome inválido");
+		}
+		if (produto.getMarca().getId() == null) {
+			throw new Exception("Marca inválida");
+		}
+		if (produto.getCategoria().getId() == null) {
+			throw new Exception("Categoria inválida");
+		}
+		if (produto.getGrupo().getId() == null) {
+			throw new Exception("Grupo inválido");
+		}
+		if (produto.getSubgrupo().getId() == null) {
+			throw new Exception("Subgrupo inválido");
+		}
+		if (produto.getId() == null && produtoRepository.existsByNome(produto.getNome())) {
+			throw new Exception("Produto já existente");
+		}
+		produtoRepository.save(produto);
+	}
 
-		Marca marca = marcaRepository.findById(form.getMarcaId())
-				.orElseThrow(() -> new IllegalArgumentException("Marca não encontrada."));
+	public void excluirProduto(Produto produto) {
+		produtoRepository.deleteById(produto.getId());
+	}
 
-		Categoria categoria = categoriaRepository.findById(form.getCategoriaId())
-				.orElseThrow(() -> new IllegalArgumentException("Categoria não encontrada."));
+	public List<Produto> consultarProduto() {
+		return produtoRepository.consultarProdutoComVariacoes();
+	}
 
-		produto.setNome(form.getNome());
-		produto.setDescricao(form.getDescricao());
-		produto.setMarca(marca);
-		produto.setCategoria(categoria);
-		produto.setAtivo(Boolean.TRUE.equals(form.getAtivo()));
+	// -----------------------------
+	// Variação do Produto
+	// -----------------------------
 
-		if (form.getVariacoes() != null) {
-			for (ProdutoVariacaoForm variacaoForm : form.getVariacoes()) {
+	public void salvarVariacao(ProdutoVariacao variacao) throws Exception {
+		if (variacao == null)
+			throw new Exception("Variação do produto não informada.");
 
-				if (variacaoVazia(variacaoForm)) {
-					continue;
-				}
+		if (variacao.getProduto() == null || variacao.getProduto().getId() == null)
+			throw new Exception("Produto não informado.");
 
-				ProdutoVariacao variacao = new ProdutoVariacao();
-				variacao.setSku(trimToNull(variacaoForm.getSku()));
-				variacao.setCodigoBarra(trimToNull(variacaoForm.getCodigoBarra()));
-				variacao.setCor(trimToNull(variacaoForm.getCor()));
-				variacao.setTamanho(trimToNull(variacaoForm.getTamanho()));
-				variacao.setCusto(
-						variacaoForm.getCusto() != null ? variacaoForm.getCusto() : java.math.BigDecimal.ZERO);
-				variacao.setPreco(
-						variacaoForm.getPreco() != null ? variacaoForm.getPreco() : java.math.BigDecimal.ZERO);
+		if (variacao.getCusto() == null)
+			throw new Exception("Custo não informado.");
 
-				Estoque estoque = new Estoque();
-				estoque.setQuantidade(variacaoForm.getQuantidade() != null ? variacaoForm.getQuantidade() : 0);
-				estoque.setEstoqueMinimo(variacaoForm.getEstoqueMinimo() != null ? variacaoForm.getEstoqueMinimo() : 0);
+		if (variacao.getMargem() == null)
+			throw new Exception("Margem não informada.");
 
-				variacao.setEstoque(estoque);
-				estoque.setProdutoVariacao(variacao);
+		if (variacao.getPreco() == null)
+			throw new Exception("Preço não informado.");
 
-				produto.addVariacao(variacao);
+		if (variacao.getCusto().compareTo(BigDecimal.ZERO) < 0)
+			throw new Exception("Custo não pode ser negativo.");
+
+		if (variacao.getMargem().compareTo(BigDecimal.ZERO) < 0)
+			throw new Exception("Margem não pode ser negativa.");
+
+		if (variacao.getPreco().compareTo(BigDecimal.ZERO) < 0)
+			throw new Exception("Preço não pode ser negativo.");
+
+		if (variacao.getCor() != null && variacao.getCor().length() > 50)
+			throw new Exception("Cor deve ter no máximo 50 caracteres.");
+
+		if (variacao.getTamanho() != null && variacao.getTamanho().length() > 20)
+			throw new Exception("Tamanho deve ter no máximo 20 caracteres.");
+
+		if (variacao.getCodigoBarra() != null && variacao.getCodigoBarra().length() > 60)
+			throw new Exception("Código de barras deve ter no máximo 60 caracteres.");
+
+		if (variacao.getSku() != null && variacao.getSku().length() > 60)
+			throw new Exception("SKU deve ter no máximo 60 caracteres.");
+
+		if (variacao.getEstoque() == null)
+			throw new Exception("Estoque não informado.");
+
+		if (variacao.getEstoque().getQuantidade() == null)
+			throw new Exception("Quantidade em estoque não informada.");
+
+		if (variacao.getEstoque().getEstoqueMinimo() == null)
+			throw new Exception("Estoque mínimo não informado.");
+
+		if (variacao.getEstoque().getQuantidade() < 0)
+			throw new Exception("Quantidade em estoque não pode ser negativa.");
+
+		if (variacao.getEstoque().getEstoqueMinimo() < 0)
+			throw new Exception("Estoque mínimo não pode ser negativo.");
+
+		// calcula automaticamente o preço pelo custo e margem
+		variacao.setPreco(calcularPreco(variacao.getCusto(), variacao.getMargem()));
+
+		// associa corretamente o estoque à variação
+		variacao.getEstoque().setProdutoVariacao(variacao);
+
+		if ((variacao.getCor() == null || variacao.getCor().isBlank()) && (variacao.getTamanho() == null || variacao.getTamanho().isBlank()))
+			throw new Exception("Informe ao menos cor ou tamanho para a variação.");
+
+		// gera SKU se não informado
+		if (variacao.getSku() == null || variacao.getSku().isBlank())
+			variacao.setSku(SkuUtil.gerarSku(variacao.getProduto(), variacao));
+
+		// valida SKU duplicado
+		if (variacao.getId() == null) {
+			if (variacaoRepository.existsBySku(variacao.getSku()))
+				throw new Exception("Já existe uma variação com o SKU informado: " + variacao.getSku());
+
+		} else {
+			if (variacaoRepository.existsBySkuAndIdNot(variacao.getSku(), variacao.getId()))
+				throw new Exception("Já existe outra variação com o SKU informado: " + variacao.getSku());
+
+		}
+
+		// impede duplicidade lógica da variação
+		if (variacao.getId() == null) {
+			if (variacaoRepository.existsByProdutoIdAndCorIgnoreCaseAndTamanhoIgnoreCase(variacao.getProduto().getId(),
+					tratarTexto(variacao.getCor()), tratarTexto(variacao.getTamanho()))) {
+				throw new Exception("Já existe uma variação para este produto com a mesma cor e tamanho.");
+			}
+		} else {
+			if (variacaoRepository.existsByProdutoIdAndCorIgnoreCaseAndTamanhoIgnoreCaseAndIdNot(
+					variacao.getProduto().getId(), tratarTexto(variacao.getCor()), tratarTexto(variacao.getTamanho()),
+					variacao.getId())) {
+				throw new Exception("Já existe outra variação para este produto com a mesma cor e tamanho.");
 			}
 		}
 
-		return produto;
+		// validação opcional: preço coerente com custo + margem
+		BigDecimal precoCalculado = calcularPreco(variacao.getCusto(), variacao.getMargem());
+		if (variacao.getPreco().compareTo(precoCalculado) != 0)
+			throw new Exception(
+					"Preço inválido. Para o custo e margem informados, o preço esperado é " + precoCalculado + ".");
+
+		variacaoRepository.save(variacao);
 	}
 
-	private boolean variacaoVazia(ProdutoVariacaoForm form) {
-		return isBlank(form.getSku()) && isBlank(form.getCodigoBarra()) && isBlank(form.getCor())
-				&& isBlank(form.getTamanho()) && form.getCusto() == null && form.getPreco() == null
-				&& form.getQuantidade() == null && form.getEstoqueMinimo() == null;
+	private String tratarTexto(String valor) {
+		return valor == null ? "" : valor.trim();
 	}
 
-	private String trimToNull(String valor) {
-		if (valor == null) {
-			return null;
-		}
-		String texto = valor.trim();
-		return texto.isEmpty() ? null : texto;
+	private BigDecimal calcularPreco(BigDecimal custo, BigDecimal margem) {
+		return custo.add(custo.multiply(margem).divide(new BigDecimal("100"), 2, RoundingMode.HALF_UP)).setScale(2,
+				RoundingMode.HALF_UP);
 	}
 
-	private boolean isBlank(String valor) {
-		return valor == null || valor.trim().isEmpty();
+	public void excluirVariacao(ProdutoVariacao variacao) {
+		variacaoRepository.deleteById(variacao.getId());
 	}
+
+	public ProdutoVariacao consultarVariacaoPorId(Long id) throws Exception {
+		return variacaoRepository.findById(id).orElseThrow(() -> new Exception("Variação não encontrada!"));
+	}
+
 }

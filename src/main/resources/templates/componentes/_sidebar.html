@@ -16,11 +16,13 @@
 						<a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi bi-folder-fill"></i> Cadastro</a>
 						<ul class="dropdown-menu">
 							<li><a class="dropdown-item" th:href="@{/cadastro/produto}">Produto</a></li>
+							<li><a class="dropdown-item" th:href="@{/cadastro/categoria}">Categoria</a></li>
+							<li><a class="dropdown-item" th:href="@{/cadastro/grupo}">Grupo</a></li>
+							<li><a class="dropdown-item" th:href="@{/cadastro/marca}">Marca</a></li>
 						</ul>
 					</li>
 				</ul>
 				<div class="d-flex">
-					<input class="form-control me-2" type="search" id="iptPesquisaGeral" placeholder="Pesquise" aria-label="Search" />
 					<button class="btn btn-outline-info me-2" data-bs-toggle="offcanvas" data-bs-target="#offc-notificacoes" role="button" aria-controls="offcanvasExample"><i class="bi bi-bell-fill"></i></button>
 					<form th:action="@{/logout}" method="post" style="margin: 0;">
 						<button class="btn btn-outline-success" type="submit"><i class="bi bi-box-arrow-right"></i></button>

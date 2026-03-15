@@ -1,0 +1,82 @@
+<html lang="pt-br" 
+	  xmlns:th="http://www.thymeleaf.org" 
+	  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" 
+	  layout:decorate="~{template}">
+      
+<head>
+	<title>Marca</title>
+	<link rel="stylesheet" th:href="@{/css/marca.css}" type="text/css">
+</head>
+
+<body>
+	<div layout:fragment="conteudo">
+		<div class="container">
+		    <div class="card mt-3">
+		        <div class="card-header">Cadastro</div>
+		        <form th:action="@{/cadastro/marca}" method="POST">
+			        <div class="card-body row g-3">
+			            <div class="col-md-1">
+			                <label class="form-label">ID</label>
+			                <input type="text" class="form-control" name="id" th:value="${marca?.id}">
+			            </div>
+			            <div class="col-md-10">
+			                <label class="form-label">Nome</label>
+			                <input type="text" class="form-control" name="nome" th:value="${marca?.nome}">
+			            </div>
+			            <div class="col-md-1 d-flex align-items-end">
+					        <button type="submit" class="btn btn-success">Salvar</button>
+					    </div>
+		        	</div>
+		        </form>
+		    </div>
+		    <div class="card mt-3">
+		        <div class="card-header">Lista de Marcas</div>
+		        <div class="card-body row g-3">
+		        	<div class="col-md-12">
+		        		<label class="form-label">Nome</label>
+		                <input type="text" class="form-control" id="nome">
+		        	</div>
+		            <div class="col-md-12">
+						<table class="table" id="tb-marca">
+							<colgroup>
+								<col style="width: 80px;">
+								<col style="width: auto;">
+								<col style="width: 10px;">
+								<col style="width: 10px;">
+							</colgroup>
+							<thead>
+								<tr>
+									<th>Id</th>
+									<th>Nome</th>
+									<th></th>
+									<th></th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr th:each="c : ${marcas}">
+									<td th:text="${c.id}"></td>
+									<td th:text="${c.nome}"></td>
+									<td>
+										<a th:href="@{/cadastro/marca(id=${c.id})}" class="btn btn-primary">
+											<i class="bi bi-pencil-square"></i>
+										</a>
+									</td>
+									<td>
+										<form th:action="@{/cadastro/marca/excluir}" method="post">
+											<input type="hidden" name="id" th:value="${c.id}">
+											<button type="submit" th:data-nome="${c.nome}" class="btn btn-danger" onclick="return confirmarExclusao(this)">
+												<i class="bi bi-trash3-fill"></i>
+											</button>
+										</form>
+									</td>
+								</tr>
+							</tbody>
+						</table>
+		            </div>
+		        </div>
+		    </div>
+		</div>
+		<script type="module" th:src="@{/js/marca.js}"></script>
+	</div>
+</body>
+</html>

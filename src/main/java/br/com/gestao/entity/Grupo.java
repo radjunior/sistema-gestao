@@ -1,21 +1,20 @@
 package br.com.gestao.entity;
 
-import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 
 @Entity
-public class Categoria extends EntityAudit {
+public class Grupo {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
-	@Column(nullable = false, unique = true, length = 100)
 	private String nome;
 
-	public Categoria() {
+	public Grupo() {
+
 	}
 
 	public Long getId() {
@@ -36,7 +35,7 @@ public class Categoria extends EntityAudit {
 
 	@Override
 	public String toString() {
-		return "Categoria [id=" + id + ", nome=" + nome + "]";
+		return "Grupo [id=" + id + ", nome=" + nome + "]";
 	}
 
 }

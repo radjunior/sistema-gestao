@@ -1,0 +1,186 @@
+<html lang="pt-br" 
+	  xmlns:th="http://www.thymeleaf.org" 
+	  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" 
+	  layout:decorate="~{template}">
+      
+<head>
+	<title>Grupo</title>
+	<link rel="stylesheet" th:href="@{/css/grupo.css}" type="text/css">
+	<script>
+		(function () {
+			const tab = localStorage.getItem("tab_selecionada") || "grupo";
+			document.documentElement.classList.add("js-loading");
+			document.documentElement.dataset.tab = tab;
+		})();
+	</script>
+</head>
+
+<body>
+	<div layout:fragment="conteudo">
+		<div class="container">
+		    <ul class="nav nav-tabs mt-3">
+				<li class="nav-item" style="cursor:pointer">
+					<a class="nav-link" id="a-grupo" onclick="mudarTab(this)">Grupo</a>
+				</li>
+				<li class="nav-item" style="cursor:pointer">
+					<a class="nav-link" id="a-subgrupo" onclick="mudarTab(this)">Subgrupo</a>
+				</li>
+			</ul>
+			<!--------------------------------------------------------------------------- 
+		    	GRUPO
+		    ----------------------------------------------------------------------------->
+		    <div class="card mt-3 tab-content js-hide" id="card-cad-grupo">
+		        <div class="card-header">Grupo</div>
+		        <form th:action="@{/cadastro/grupo}" method="POST">
+			        <div class="card-body row g-3">
+			            <div class="col-md-1">
+			                <label class="form-label">ID</label>
+			                <input type="text" class="form-control" name="id" th:value="${grupo?.id}">
+			            </div>
+			            <div class="col-md-10">
+			                <label class="form-label">Nome</label>
+			                <input type="text" class="form-control" name="nome" th:value="${grupo?.nome}">
+			            </div>
+			            <div class="col-md-1 d-flex align-items-end">
+					        <button type="submit" class="btn btn-success">Salvar</button>
+					    </div>
+		        	</div>
+		        </form>
+		    </div>
+		    <!--------------------------------------------------------------------------- 
+		    	LISTA GRUPO
+		    ----------------------------------------------------------------------------->
+		    <div class="card mt-3 tab-content js-hide" id="div-grupos">
+		        <div class="card-header">Lista de Grupos</div>
+		        <div class="card-body row g-3">
+		        	<div class="col-md-12">
+		        		<label class="form-label">Nome</label>
+		                <input type="text" class="form-control" id="nome-grupo">
+		        	</div>
+		            <div class="col-md-12">
+						<table class="table" id="tb-grupo">
+							<colgroup>
+								<col style="width: 80px;">
+								<col style="width: auto;">
+								<col style="width: 10px;">
+								<col style="width: 10px;">
+							</colgroup>
+							<thead>
+								<tr>
+									<th>Id</th>
+									<th>Nome</th>
+									<th></th>
+									<th></th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr th:each="g : ${grupos}">
+									<td th:text="${g.id}"></td>
+									<td th:text="${g.nome}"></td>
+									<td>
+										<a th:href="@{/cadastro/grupo(id=${g.id})}" class="btn btn-primary">
+											<i class="bi bi-pencil-square"></i>
+										</a>
+									</td>
+									<td>
+										<form th:action="@{/cadastro/grupo/excluir}" method="post">
+											<input type="hidden" name="id" th:value="${g.id}">
+											<button type="submit" th:data-nome="${g.nome}" class="btn btn-danger" onclick="return confirmarExclusao(this)">
+												<i class="bi bi-trash3-fill"></i>
+											</button>
+										</form>
+									</td>
+								</tr>
+							</tbody>
+						</table>
+		            </div>
+		        </div>
+		    </div>
+		    <!--------------------------------------------------------------------------- 
+		    	SUB GRUPO
+		    ----------------------------------------------------------------------------->
+		    <div class="card mt-3 tab-content js-hide" id="card-cad-subgrupo">
+		        <div class="card-header">Subgrupo</div>
+		        <form th:action="@{/cadastro/sub-grupo}" method="POST">
+			        <div class="card-body row g-3">
+			            <div class="col-md-1">
+			                <label class="form-label">ID</label>
+			                <input type="text" class="form-control" name="id" th:value="${sub?.id}">
+			            </div>
+			            <div class="col-md-6">
+			                <label class="form-label">Nome</label>
+			                <input type="text" class="form-control" name="nome" th:value="${sub?.nome}">
+			            </div>
+			            <div class="col-md-4">
+			                <label class="form-label">Grupo</label>
+			                <select class="form-select" name="grupo.id">
+			                    <option value="">Selecione</option>
+			                    <option th:each="g : ${grupos}" 
+			                    		th:value="${g.id}" 
+			                    		th:text="${g.nome}"
+			                    		th:selected="${sub != null and sub.grupo != null and g.id == sub.grupo.id}"></option>
+			                </select>
+			            </div>
+			            <div class="col-md-1 d-flex align-items-end">
+					        <button type="submit" class="btn btn-success">Salvar</button>
+					    </div>
+		        	</div>
+		        </form>
+		    </div>
+		    <!--------------------------------------------------------------------------- 
+		    	LISTA SUB GRUPO
+		    ----------------------------------------------------------------------------->
+		    <div class="card mt-3 tab-content js-hide" id="div-subgrupos">
+		        <div class="card-header">Lista de Subgrupos</div>
+		        <div class="card-body row g-3">
+		        	<div class="col-md-12">
+		        		<label class="form-label">Nome</label>
+		                <input type="text" class="form-control" id="nome-subgrupo">
+		        	</div>
+		            <div class="col-md-12">
+						<table class="table" id="tb-grupos">
+							<colgroup>
+								<col style="width: 80px;">
+								<col style="width: auto;">
+								<col style="width: auto;">
+								<col style="width: 10px;">
+								<col style="width: 10px;">
+							</colgroup>
+							<thead>
+								<tr>
+									<th>Id</th>
+									<th>Nome</th>
+									<th>Grupo</th>
+									<th></th>
+									<th></th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr th:each="g : ${subgrupos}">
+									<td th:text="${g.id}"></td>
+									<td th:text="${g.nome}"></td>
+									<td th:text="${g.grupo.nome}"></td>
+									<td>
+										<a th:href="@{/cadastro/sub-grupo(id=${g.id})}" class="btn btn-primary">
+											<i class="bi bi-pencil-square"></i>
+										</a>
+									</td>
+									<td>
+										<form th:action="@{/cadastro/grupo/excluir}" method="post">
+											<input type="hidden" name="id" th:value="${g.id}">
+											<button type="submit" th:data-nome="${g.nome}" class="btn btn-danger" onclick="return confirmarExclusao(this)">
+												<i class="bi bi-trash3-fill"></i>
+											</button>
+										</form>
+									</td>
+								</tr>
+							</tbody>
+						</table>
+		            </div>
+		        </div>
+		    </div>
+		</div>
+		<script type="module" th:src="@{/js/grupo.js}"></script>
+	</div>
+</body>
+</html>

@@ -13,6 +13,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.OrderBy;
 
 @Entity
 public class Produto extends EntityAudit {
@@ -35,23 +36,26 @@ public class Produto extends EntityAudit {
 	@JoinColumn(name = "categoria_id", nullable = false)
 	private Categoria categoria;
 
+	@ManyToOne(fetch = FetchType.LAZY, optional = false)
+	@JoinColumn(name = "grupo_id", nullable = false)
+	private Grupo grupo;
+
+	@ManyToOne(fetch = FetchType.LAZY, optional = false)
+	@JoinColumn(name = "subgrupo_id", nullable = false)
+	private Subgrupo subgrupo;
+
 	@Column(nullable = false)
 	private boolean ativo = true;
 
-	@OneToMany(mappedBy = "produto", cascade = CascadeType.ALL, orphanRemoval = true)
+	@OneToMany(mappedBy = "produto", cascade = CascadeType.ALL, orphanRemoval = false)
+	@OrderBy("id asc")
 	private List<ProdutoVariacao> variacoes = new ArrayList<>();
 
 	public Produto() {
-	}
-
-	public void addVariacao(ProdutoVariacao variacao) {
-		variacao.setProduto(this);
-		this.variacoes.add(variacao);
-	}
-
-	public void clearVariacoes() {
-		this.variacoes.forEach(v -> v.setProduto(null));
-		this.variacoes.clear();
+		this.marca = new Marca();
+		this.categoria = new Categoria();
+		this.grupo = new Grupo();
+		this.subgrupo = new Subgrupo();
 	}
 
 	public Long getId() {
@@ -100,6 +104,36 @@ public class Produto extends EntityAudit {
 
 	public void setAtivo(boolean ativo) {
 		this.ativo = ativo;
+	}
+
+	public Grupo getGrupo() {
+		return grupo;
+	}
+
+	public void setGrupo(Grupo grupo) {
+		this.grupo = grupo;
+	}
+
+	public Subgrupo getSubgrupo() {
+		return subgrupo;
+	}
+
+	public void setSubgrupo(Subgrupo subgrupo) {
+		this.subgrupo = subgrupo;
+	}
+
+	public List<ProdutoVariacao> getVariacoes() {
+		return variacoes;
+	}
+
+	public void setVariacoes(List<ProdutoVariacao> variacoes) {
+		this.variacoes = variacoes;
+	}
+
+	@Override
+	public String toString() {
+		return "Produto [id=" + id + ", nome=" + nome + ", descricao=" + descricao + ", marca=" + marca + ", categoria="
+				+ categoria + ", grupo=" + grupo + ", subgrupo=" + subgrupo + ", ativo=" + ativo + "]";
 	}
 
 }

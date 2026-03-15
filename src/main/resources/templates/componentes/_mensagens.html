@@ -1,11 +1,20 @@
 <div xmlns:th="http://www.thymeleaf.org" th:fragment="mensagens">
-	<div class="toast" role="alert" aria-live="assertive" aria-atomic="true" id="alert-toast">
-		<div class="toast-header">
-			<i class="bi bi-chat-right-dots-fill" id="icon-toasts"></i>&nbsp;&nbsp;
-			<strong class="me-auto">Atenção</strong>
-			<small>agora</small>
-			<button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
-		</div>
-		<div class="toast-body" id="toast-text"></div>
-	</div>
+    <div class="toast" role="alert" aria-live="assertive" aria-atomic="true" id="alert-toast" th:if="${sucesso != null || erro != null}">
+        <div class="toast-header">
+            <i class="bi" th:classappend="${erro != null} ? ' bi-x-circle-fill text-danger' : ' bi-check-circle-fill text-success'"></i>
+            &nbsp;&nbsp;
+            <strong class="me-auto" th:text="${erro != null} ? 'Atenção' : 'Sucesso'"></strong>
+            <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+        <div class="toast-body"
+             th:text="${erro != null} ? ${erro} : ${sucesso}">
+        </div>
+    </div>
+    <script th:if="${sucesso != null || erro != null}">
+        document.addEventListener("DOMContentLoaded", function () {
+            const toastEl = document.getElementById('alert-toast');
+            const toast = new bootstrap.Toast(toastEl);
+            toast.show();
+        });
+    </script>
 </div>

@@ -1,0 +1,28 @@
+.i-expandir-cadastro {
+	cursor: pointer;
+}
+
+.form-box {
+	overflow: hidden;
+	max-height: 500px;
+	opacity: 1;
+	transition: max-height 0.35s ease, opacity 0.25s ease, padding 0.35s
+		ease, margin 0.35s ease;
+}
+
+.form-box.recolhido {
+	max-height: 0;
+	opacity: 0;
+	padding-top: 0;
+	padding-bottom: 0;
+	margin-top: 0;
+	border-width: 0;
+}
+
+input[readonly] {
+	background-color: #f5f5f5;
+}
+
+.linha-variacoes .table {
+	background: #fff;
+}
