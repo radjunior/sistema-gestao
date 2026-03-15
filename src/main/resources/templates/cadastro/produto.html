@@ -11,6 +11,7 @@
 <body>
 	<div layout:fragment="conteudo">
 		<div class="container" style="max-width: 100% !important;">
+		    
 		    <div class="card mt-3 tab-content js-hide" id="card-cad-grupo">
 		        <div class="card-header d-flex justify-content-between">
 			        Cadastro <i class="bi bi-arrow-bar-up i-expandir-cadastro" id="btnToggle" onclick="definirFormCadastro()"></i>
@@ -218,10 +219,46 @@
 			<div class="card mt-3 tab-content js-hide" id="div-grupos">
 		        <div class="card-header">Lista de Produtos</div>
 		        <div class="card-body row g-3">
-		        	<div class="col-md-12">
+		        	<div class="col-md-4">
 		        		<label class="form-label">Nome</label>
-		                <input type="text" class="form-control" id="nome-produto">
+		                <input type="text" class="form-control" id="filtro-produto">
 		        	</div>
+		        	<div class="col-md-2">
+		                <label class="form-label">Marca</label>
+		                <select class="form-select" id="filtro-marca">
+		                    <option value="">Selecione</option>
+		                    <option th:each="m : ${marcas}" 
+		                    		th:value="${m.id}" 
+		                    		th:text="${m.nome}"></option>
+		                </select>
+		            </div>
+		            <div class="col-md-2">
+		                <label class="form-label">Categoria</label>
+		                <select class="form-select" id="filtro-categoria">
+		                    <option value="">Selecione</option>
+		                    <option th:each="c : ${categorias}" 
+		                    		th:value="${c.id}" 
+		                    		th:text="${c.nome}"></option>
+		                </select>
+		            </div>
+		            <div class="col-md-2">
+		                <label class="form-label">Grupo</label>
+		                <select class="form-select" id="filtro-grupo">
+		                    <option value="">Selecione</option>
+		                    <option th:each="g : ${grupos}" 
+		                    		th:value="${g.id}" 
+		                    		th:text="${g.nome}"></option>
+		                </select>
+		            </div>
+		            <div class="col-md-2">
+		                <label class="form-label">Subgrupo</label>
+		                <select class="form-select" id="filtro-subgrupo">
+		                    <option value="">Selecione</option>
+		                    <option th:each="s : ${subgrupos}" 
+		                    		th:value="${s.id}" 
+		                    		th:text="${s.nome}"></option>
+		                </select>
+		            </div>
 		            <div class="col-md-12">
 						<table class="table" id="tb-produto">
 							<colgroup>
@@ -252,7 +289,13 @@
 							</thead>
 							<tbody>
 								<th:block th:each="p : ${produtos}">
-									<tr>
+									<tr class="linha-produto"
+									    th:attr="data-id=${p.id},
+									             data-nome=${p.nome},
+									             data-marca=${p.marca != null ? p.marca.id : ''},
+									             data-categoria=${p.categoria != null ? p.categoria.id : ''},
+									             data-grupo=${p.grupo != null ? p.grupo.id : ''},
+									             data-subgrupo=${p.subgrupo != null ? p.subgrupo.id : ''}">
 										<td>
 											<button type="button"
 											        class="btn btn-sm btn-outline-secondary"

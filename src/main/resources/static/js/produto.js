@@ -2,18 +2,60 @@ const STORAGE_FORM_CADASTRO = "produto_form_cadastro_estado";
 const STORAGE_FORM_VARIACAO = "produto_variacao_form_estado";
 
 document.addEventListener("DOMContentLoaded", function() {
-	const inputNome = document.getElementById("nome-produto");
-	if (inputNome) {
-		inputNome.addEventListener("input", function() {
-			const filtro = this.value.toLowerCase();
-			const linhas = document.querySelectorAll("#tb-produto tbody tr");
+	const filtroNome = document.getElementById("filtro-produto");
+	const filtroMarca = document.getElementById("filtro-marca");
+	const filtroCategoria = document.getElementById("filtro-categoria");
+	const filtroGrupo = document.getElementById("filtro-grupo");
+	const filtroSubgrupo = document.getElementById("filtro-subgrupo");
 
-			linhas.forEach(linha => {
-				const nome = linha.children[2]?.textContent.toLowerCase() || "";
-				linha.style.display = nome.includes(filtro) ? "" : "none";
-			});
+	function aplicarFiltros() {
+		const nome = (filtroNome?.value || "").trim().toLowerCase();
+		const marca = filtroMarca?.value || "";
+		const categoria = filtroCategoria?.value || "";
+		const grupo = filtroGrupo?.value || "";
+		const subgrupo = filtroSubgrupo?.value || "";
+
+		const linhasProduto = document.querySelectorAll("#tb-produto tbody tr.linha-produto");
+
+		linhasProduto.forEach(linha => {
+			const id = linha.dataset.id;
+			const nomeLinha = (linha.dataset.nome || "").toLowerCase();
+			const marcaLinha = linha.dataset.marca || "";
+			const categoriaLinha = linha.dataset.categoria || "";
+			const grupoLinha = linha.dataset.grupo || "";
+			const subgrupoLinha = linha.dataset.subgrupo || "";
+
+			const atendeNome = !nome || nomeLinha.includes(nome);
+			const atendeMarca = !marca || marcaLinha === marca;
+			const atendeCategoria = !categoria || categoriaLinha === categoria;
+			const atendeGrupo = !grupo || grupoLinha === grupo;
+			const atendeSubgrupo = !subgrupo || subgrupoLinha === subgrupo;
+
+			const exibir = atendeNome && atendeMarca && atendeCategoria && atendeGrupo && atendeSubgrupo;
+
+			linha.style.display = exibir ? "" : "none";
+
+			const linhaVariacoes = document.getElementById(`variacoes-${id}`);
+			if (linhaVariacoes && !exibir) {
+				linhaVariacoes.classList.add("d-none");
+
+				const icon = document.getElementById(`icon-${id}`);
+				if (icon) {
+					icon.classList.remove("bi-chevron-down");
+					icon.classList.add("bi-chevron-right");
+				}
+			}
 		});
 	}
+
+	[filtroNome, filtroMarca, filtroCategoria, filtroGrupo, filtroSubgrupo]
+		.filter(Boolean)
+		.forEach(elemento => {
+			elemento.addEventListener("input", aplicarFiltros);
+			elemento.addEventListener("change", aplicarFiltros);
+		});
+
+	aplicarFiltros();
 	aplicarEstadoFormulario();
 	aplicarEstadoFormularioVariacao();
 	const custoInput = document.getElementById("custo");

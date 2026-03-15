@@ -13,6 +13,7 @@ import br.com.gestao.entity.Produto;
 import br.com.gestao.entity.ProdutoVariacao;
 import br.com.gestao.service.CategoriaService;
 import br.com.gestao.service.GrupoService;
+import br.com.gestao.service.MarcaService;
 import br.com.gestao.service.ProdutoService;
 
 @Controller
@@ -76,7 +77,12 @@ public class ProdutoController extends DefaultController {
 			showSucesso(ra, "Produto excluída com sucesso!");
 			return REDIRECT;
 		} catch (Exception e) {
-			showError(m, e.getMessage());
+			e.printStackTrace();
+			if (e.getMessage().contains("violates foreign key constraint")) {
+				showError(m, "Não é possível excluir essa Produto pois ela está relacionada com outra entidade!");
+			} else {
+				showError(m, e.getMessage());
+			}
 			carregarPagina(m);
 			return PAGINA;
 		}

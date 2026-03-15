@@ -61,7 +61,12 @@ public class SubgrupoController extends DefaultController {
 			showSucesso(ra, "Subgrupo excluído com sucesso!");
 			return REDIRECT;
 		} catch (Exception e) {
-			showError(model, e.getMessage());
+			e.printStackTrace();
+			if (e.getMessage().contains("violates foreign key constraint")) {
+				showError(model, "Não é possível excluir essa Subgrupo pois ela está relacionada com outra entidade!");
+			} else {
+				showError(model, e.getMessage());
+			}
 			carregarPagina(model);
 			return PAGINA;
 		}

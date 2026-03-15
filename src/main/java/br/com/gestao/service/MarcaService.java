@@ -1,4 +1,4 @@
-package br.com.gestao.controller.cadastro;
+package br.com.gestao.service;
 
 import java.util.List;
 

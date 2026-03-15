@@ -62,7 +62,11 @@ public class GrupoController extends DefaultController {
 			return REDIRECT;
 		} catch (Exception e) {
 			e.printStackTrace();
-			showError(model, e.getMessage());
+			if (e.getMessage().contains("violates foreign key constraint")) {
+				showError(model, "Não é possível excluir essa Grupo pois ela está relacionada com outra entidade!");
+			} else {
+				showError(model, e.getMessage());
+			}
 			carregarPagina(model);
 			return PAGINA;
 		}

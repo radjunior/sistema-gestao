@@ -10,6 +10,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import br.com.gestao.controller.DefaultController;
 import br.com.gestao.entity.Marca;
+import br.com.gestao.service.MarcaService;
 
 @Controller
 @RequestMapping("/cadastro/marca")
@@ -60,7 +61,12 @@ public class MarcaController extends DefaultController {
 			showSucesso(redirectAttributes, "Marca excluída com sucesso!");
 			return REDIRECT;
 		} catch (Exception e) {
-			showError(model, e.getMessage());
+			e.printStackTrace();
+			if (e.getMessage().contains("violates foreign key constraint")) {
+				showError(model, "Não é possível excluir essa Marca pois ela está relacionada com outra entidade!");
+			} else {
+				showError(model, e.getMessage());
+			}
 			carregarPagina(model);
 			return PAGINA;
 		}
