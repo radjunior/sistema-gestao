@@ -13,13 +13,13 @@ import jakarta.persistence.PreUpdate;
 @MappedSuperclass
 public abstract class EntityAudit {
 
-	@Column(name = "criado_em", nullable = false, updatable = false)
+	@Column(name = "criado_em")
 	private LocalDateTime criadoEm;
 
-	@Column(name = "modificado_em", nullable = false)
+	@Column(name = "modificado_em")
 	private LocalDateTime modificadoEm;
 
-	@Column(name = "criado_por", updatable = false)
+	@Column(name = "criado_por")
 	private Long criadoPor;
 
 	@Column(name = "modificado_por")

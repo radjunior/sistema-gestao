@@ -1,21 +1,20 @@
 package br.com.gestao.util;
 
 import br.com.gestao.entity.Produto;
-import br.com.gestao.entity.ProdutoVariacao;
 
 public class SkuUtil {
 	private SkuUtil() {
 		throw new UnsupportedOperationException("Classe utilitária não pode ser instanciada.");
 	}
 
-	public static String gerarSku(Produto produto, ProdutoVariacao variacao) {
+	public static String gerarSku(Produto produto) {
 		if (produto == null || produto.getId() == null) {
 			throw new IllegalArgumentException("Produto e ID do produto são obrigatórios para gerar SKU.");
 		}
 
 		String prefixoNome = normalizar(parte(produto.getNome(), 4));
-		String prefixoCor = normalizar(parte(variacao.getCor(), 3));
-		String prefixoTamanho = normalizar(parte(variacao.getTamanho(), 3));
+		String prefixoCor = normalizar(parte(produto.getCor(), 3));
+		String prefixoTamanho = normalizar(parte(produto.getTamanho(), 3));
 
 		return "PROD" + produto.getId() + "-" + prefixoNome + "-" + prefixoCor + "-" + prefixoTamanho;
 	}

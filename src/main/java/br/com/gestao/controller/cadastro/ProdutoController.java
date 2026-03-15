@@ -10,7 +10,6 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import br.com.gestao.controller.DefaultController;
 import br.com.gestao.entity.Produto;
-import br.com.gestao.entity.ProdutoVariacao;
 import br.com.gestao.service.CategoriaService;
 import br.com.gestao.service.GrupoService;
 import br.com.gestao.service.MarcaService;
@@ -20,8 +19,8 @@ import br.com.gestao.service.ProdutoService;
 @RequestMapping("/cadastro")
 public class ProdutoController extends DefaultController {
 
-	private final static String PAGINA = "cadastro/produto";
-	private final static String REDIRECT = "redirect:/cadastro/produto";
+	private static final String PAGINA = "cadastro/produto";
+	private static final String REDIRECT = "redirect:/cadastro/produto";
 	private final ProdutoService produtoService;
 	private final MarcaService marcaService;
 	private final CategoriaService categoriaService;
@@ -36,87 +35,50 @@ public class ProdutoController extends DefaultController {
 	}
 
 	@GetMapping("/produto")
-	public String consultar(Model m, @RequestParam(required = false) Long id,
-			@RequestParam(required = false) Long var) {
+	public String consultar(Model model, @RequestParam(required = false) Long id) {
 		try {
 			if (id != null) {
-				m.addAttribute("produto", produtoService.consultarProdutoPorId(id));
+				model.addAttribute("produto", produtoService.consultarProdutoPorId(id));
 			}
-			if (var != null) {
-				m.addAttribute("produtoVariacao", produtoService.consultarVariacaoPorId(var));
-			}
-			carregarPagina(m);
+			carregarPagina(model);
 		} catch (Exception e) {
 			e.printStackTrace();
-			showError(m, e.getMessage());
-			carregarPagina(m);
+			showError(model, e.getMessage());
+			carregarPagina(model);
 		}
 		return PAGINA;
 	}
 
 	@PostMapping("/produto")
-	public String salvar(Model m, RedirectAttributes ra, Produto produto) {
+	public String salvar(Model model, RedirectAttributes redirectAttributes, Produto produto) {
 		try {
 			produtoService.salvarProduto(produto);
-			String msg = (produto.getId() == null) ? "Produto cadastrada com sucesso!"
-					: "Produto atualizada com sucesso!";
-			showSucesso(ra, msg);
+			String msg = (produto.getId() == null) ? "Produto cadastrado com sucesso!"
+					: "Produto atualizado com sucesso!";
+			showSucesso(redirectAttributes, msg);
 			return REDIRECT;
 		} catch (Exception e) {
-			showError(m, e.getMessage());
-			carregarPagina(m);
-			m.addAttribute("produto", produto);
+			showError(model, e.getMessage());
+			carregarPagina(model);
+			model.addAttribute("produto", produto);
 			return PAGINA;
 		}
 	}
 
 	@PostMapping("/produto/excluir")
-	public String excluir(Model m, RedirectAttributes ra, Produto produto) {
+	public String excluir(Model model, RedirectAttributes redirectAttributes, Produto produto) {
 		try {
 			produtoService.excluirProduto(produto);
-			showSucesso(ra, "Produto excluída com sucesso!");
+			showSucesso(redirectAttributes, "Produto excluído com sucesso!");
 			return REDIRECT;
 		} catch (Exception e) {
 			e.printStackTrace();
 			if (e.getMessage() != null && e.getMessage().contains("violates foreign key constraint")) {
-				showError(m, "Não é possível excluir essa Produto pois ela está relacionada com outra entidade!");
+				showError(model, "Não é possível excluir esse produto pois ele está relacionado com outra entidade!");
 			} else {
-				showError(m, e.getMessage());
+				showError(model, e.getMessage());
 			}
-			carregarPagina(m);
-			return PAGINA;
-		}
-	}
-
-	// ----------------------
-	// Variação do Produto
-	// ----------------------
-
-	@PostMapping("/produto-variacao")
-	public String salvarVariacao(Model m, RedirectAttributes ra, ProdutoVariacao variacao) {
-		try {
-			produtoService.salvarVariacao(variacao);
-			String msg = (variacao.getId() == null) ? "Variacao cadastrada com sucesso!"
-					: "Variacao atualizada com sucesso!";
-			showSucesso(ra, msg);
-			return REDIRECT;
-		} catch (Exception e) {
-			showError(m, e.getMessage());
-			carregarPagina(m);
-			m.addAttribute("variacao", variacao);
-			return PAGINA;
-		}
-	}
-
-	@PostMapping("/produto-variacao/excluir")
-	public String excluirVariacao(Model m, RedirectAttributes ra, ProdutoVariacao variacao) {
-		try {
-			produtoService.excluirVariacao(variacao);
-			showSucesso(ra, "Variacao excluída com sucesso!");
-			return REDIRECT;
-		} catch (Exception e) {
-			showError(m, e.getMessage());
-			carregarPagina(m);
+			carregarPagina(model);
 			return PAGINA;
 		}
 	}

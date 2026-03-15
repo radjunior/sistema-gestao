@@ -1,7 +1,8 @@
 package br.com.gestao.entity;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.math.BigDecimal;
+
+import org.springframework.format.annotation.NumberFormat;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -12,8 +13,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.OrderBy;
+import jakarta.persistence.OneToOne;
 
 @Entity
 public class Produto extends EntityAudit {
@@ -47,15 +47,43 @@ public class Produto extends EntityAudit {
 	@Column(nullable = false)
 	private boolean ativo = true;
 
-	@OneToMany(mappedBy = "produto", cascade = CascadeType.ALL, orphanRemoval = false)
-	@OrderBy("id asc")
-	private List<ProdutoVariacao> variacoes = new ArrayList<>();
+	@Column(nullable = false, unique = true, length = 60)
+	private String sku;
+
+	@Column(name = "codigo_barra", length = 60)
+	private String codigoBarra;
+
+	@Column(length = 50)
+	private String cor;
+
+	@Column(length = 20)
+	private String tamanho;
+
+	@Column(nullable = false, precision = 15, scale = 2)
+	@NumberFormat
+	private BigDecimal custo = BigDecimal.ZERO;
+
+	@Column(nullable = false, precision = 15, scale = 2)
+	@NumberFormat
+	private BigDecimal margem = BigDecimal.ZERO;
+
+	@Column(nullable = false, precision = 15, scale = 2)
+	@NumberFormat
+	private BigDecimal preco = BigDecimal.ZERO;
+
+	@OneToOne(mappedBy = "produto", cascade = CascadeType.ALL, orphanRemoval = true)
+	private Estoque estoque;
+	
+	@Column(columnDefinition = "TEXT")
+	private String ncm;
 
 	public Produto() {
 		this.marca = new Marca();
 		this.categoria = new Categoria();
 		this.grupo = new Grupo();
 		this.subgrupo = new Subgrupo();
+		this.estoque = new Estoque();
+		this.estoque.setProduto(this);
 	}
 
 	public Long getId() {
@@ -98,14 +126,6 @@ public class Produto extends EntityAudit {
 		this.categoria = categoria;
 	}
 
-	public boolean isAtivo() {
-		return ativo;
-	}
-
-	public void setAtivo(boolean ativo) {
-		this.ativo = ativo;
-	}
-
 	public Grupo getGrupo() {
 		return grupo;
 	}
@@ -122,18 +142,86 @@ public class Produto extends EntityAudit {
 		this.subgrupo = subgrupo;
 	}
 
-	public List<ProdutoVariacao> getVariacoes() {
-		return variacoes;
+	public boolean isAtivo() {
+		return ativo;
 	}
 
-	public void setVariacoes(List<ProdutoVariacao> variacoes) {
-		this.variacoes = variacoes;
+	public void setAtivo(boolean ativo) {
+		this.ativo = ativo;
+	}
+
+	public String getSku() {
+		return sku;
+	}
+
+	public void setSku(String sku) {
+		this.sku = sku;
+	}
+
+	public String getCodigoBarra() {
+		return codigoBarra;
+	}
+
+	public void setCodigoBarra(String codigoBarra) {
+		this.codigoBarra = codigoBarra;
+	}
+
+	public String getCor() {
+		return cor;
+	}
+
+	public void setCor(String cor) {
+		this.cor = cor;
+	}
+
+	public String getTamanho() {
+		return tamanho;
+	}
+
+	public void setTamanho(String tamanho) {
+		this.tamanho = tamanho;
+	}
+
+	public BigDecimal getCusto() {
+		return custo;
+	}
+
+	public void setCusto(BigDecimal custo) {
+		this.custo = custo;
+	}
+
+	public BigDecimal getMargem() {
+		return margem;
+	}
+
+	public void setMargem(BigDecimal margem) {
+		this.margem = margem;
+	}
+
+	public BigDecimal getPreco() {
+		return preco;
+	}
+
+	public void setPreco(BigDecimal preco) {
+		this.preco = preco;
+	}
+
+	public Estoque getEstoque() {
+		return estoque;
+	}
+
+	public void setEstoque(Estoque estoque) {
+		this.estoque = estoque;
+		if (estoque != null) {
+			estoque.setProduto(this);
+		}
 	}
 
 	@Override
 	public String toString() {
-		return "Produto [id=" + id + ", nome=" + nome + ", descricao=" + descricao + ", marca=" + marca + ", categoria="
-				+ categoria + ", grupo=" + grupo + ", subgrupo=" + subgrupo + ", ativo=" + ativo + "]";
+		return "Produto [id=" + id + ", nome=" + nome + ", descricao=" + descricao + ", sku=" + sku + ", codigoBarra="
+				+ codigoBarra + ", cor=" + cor + ", tamanho=" + tamanho + ", custo=" + custo + ", margem=" + margem
+				+ ", preco=" + preco + ", ativo=" + ativo + "]";
 	}
 
 }

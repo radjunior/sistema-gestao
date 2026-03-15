@@ -17,8 +17,8 @@ public class Estoque extends EntityAudit {
 	private Long id;
 
 	@OneToOne(fetch = FetchType.LAZY, optional = false)
-	@JoinColumn(name = "produto_variacao_id", nullable = false, unique = true)
-	private ProdutoVariacao produtoVariacao;
+	@JoinColumn(name = "produto_id", nullable = false, unique = true)
+	private Produto produto;
 
 	@Column(nullable = false)
 	private Integer quantidade = 0;
@@ -37,12 +37,12 @@ public class Estoque extends EntityAudit {
 		this.id = id;
 	}
 
-	public ProdutoVariacao getProdutoVariacao() {
-		return produtoVariacao;
+	public Produto getProduto() {
+		return produto;
 	}
 
-	public void setProdutoVariacao(ProdutoVariacao produtoVariacao) {
-		this.produtoVariacao = produtoVariacao;
+	public void setProduto(Produto produto) {
+		this.produto = produto;
 	}
 
 	public Integer getQuantidade() {
@@ -63,8 +63,8 @@ public class Estoque extends EntityAudit {
 
 	@Override
 	public String toString() {
-		return "Estoque [id=" + id + ", produtoVariacao=" + produtoVariacao + ", quantidade=" + quantidade
-				+ ", estoqueMinimo=" + estoqueMinimo + "]";
+		return "Estoque [id=" + id + ", produtoId=" + (produto != null ? produto.getId() : null) + ", quantidade="
+				+ quantidade + ", estoqueMinimo=" + estoqueMinimo + "]";
 	}
 
 }
