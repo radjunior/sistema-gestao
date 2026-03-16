@@ -53,9 +53,6 @@ public class Produto extends EntityAudit {
 	@Column(name = "codigo_barra", length = 60)
 	private String codigoBarra;
 
-	@Column(length = 50)
-	private String cor;
-
 	@Column(length = 20)
 	private String tamanho;
 
@@ -73,7 +70,7 @@ public class Produto extends EntityAudit {
 
 	@OneToOne(mappedBy = "produto", cascade = CascadeType.ALL, orphanRemoval = true)
 	private Estoque estoque;
-	
+
 	@Column(columnDefinition = "TEXT")
 	private String ncm;
 
@@ -166,14 +163,6 @@ public class Produto extends EntityAudit {
 		this.codigoBarra = codigoBarra;
 	}
 
-	public String getCor() {
-		return cor;
-	}
-
-	public void setCor(String cor) {
-		this.cor = cor;
-	}
-
 	public String getTamanho() {
 		return tamanho;
 	}
@@ -217,11 +206,20 @@ public class Produto extends EntityAudit {
 		}
 	}
 
+	public String getNcm() {
+		return ncm;
+	}
+
+	public void setNcm(String ncm) {
+		this.ncm = ncm;
+	}
+
 	@Override
 	public String toString() {
-		return "Produto [id=" + id + ", nome=" + nome + ", descricao=" + descricao + ", sku=" + sku + ", codigoBarra="
-				+ codigoBarra + ", cor=" + cor + ", tamanho=" + tamanho + ", custo=" + custo + ", margem=" + margem
-				+ ", preco=" + preco + ", ativo=" + ativo + "]";
+		return "Produto [id=" + id + ", nome=" + nome + ", descricao=" + descricao + ", marca=" + marca + ", categoria="
+				+ categoria + ", grupo=" + grupo + ", subgrupo=" + subgrupo + ", ativo=" + ativo + ", sku=" + sku
+				+ ", codigoBarra=" + codigoBarra + ", tamanho=" + tamanho + ", custo=" + custo + ", margem=" + margem
+				+ ", preco=" + preco + ", estoque=" + estoque + ", ncm=" + ncm + "]";
 	}
 
 }

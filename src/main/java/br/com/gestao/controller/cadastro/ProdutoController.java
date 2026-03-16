@@ -82,6 +82,18 @@ public class ProdutoController extends DefaultController {
 			return PAGINA;
 		}
 	}
+	
+	@GetMapping("/processar-sku-produtos")
+	public String ajustarSku(Model m) {
+		try {
+			produtoService.processarSkuProdutos();
+			return REDIRECT;
+		} catch (Exception e) {
+			e.printStackTrace();
+			showError(m, e.getMessage());
+			return PAGINA;
+		}
+	}
 
 	private void carregarPagina(Model model) {
 		model.addAttribute("produtos", produtoService.consultarProduto());

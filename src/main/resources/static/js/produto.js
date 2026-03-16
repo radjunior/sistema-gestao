@@ -7,30 +7,43 @@ document.addEventListener("DOMContentLoaded", function() {
 	const filtroGrupo = document.getElementById("filtro-grupo");
 	const filtroSubgrupo = document.getElementById("filtro-subgrupo");
 
+	const tabela = $("#tb-produto");
+
+	if (tabela.length) {
+		tabela.bootstrapTable();
+	}
+
 	function aplicarFiltros() {
+		if (!tabela.length) return;
+
 		const nome = (filtroNome?.value || "").trim().toLowerCase();
 		const marca = filtroMarca?.value || "";
 		const categoria = filtroCategoria?.value || "";
 		const grupo = filtroGrupo?.value || "";
 		const subgrupo = filtroSubgrupo?.value || "";
 
-		const linhasProduto = document.querySelectorAll("#tb-produto tbody tr.linha-produto");
+		tabela.bootstrapTable("filterBy", {
+			nome,
+			marcaId: marca,
+			categoriaId: categoria,
+			grupoId: grupo,
+			subgrupoId: subgrupo
+		}, {
+			filterAlgorithm: function(row, filters) {
+				const nomeLinha = (row.nome || "").toString().toLowerCase();
+				const marcaLinha = (row.marcaId || "").toString();
+				const categoriaLinha = (row.categoriaId || "").toString();
+				const grupoLinha = (row.grupoId || "").toString();
+				const subgrupoLinha = (row.subgrupoId || "").toString();
 
-		linhasProduto.forEach(linha => {
-			const nomeLinha = (linha.dataset.nome || "").toLowerCase();
-			const marcaLinha = linha.dataset.marca || "";
-			const categoriaLinha = linha.dataset.categoria || "";
-			const grupoLinha = linha.dataset.grupo || "";
-			const subgrupoLinha = linha.dataset.subgrupo || "";
+				const atendeNome = !filters.nome || nomeLinha.includes(filters.nome);
+				const atendeMarca = !filters.marcaId || marcaLinha === filters.marcaId;
+				const atendeCategoria = !filters.categoriaId || categoriaLinha === filters.categoriaId;
+				const atendeGrupo = !filters.grupoId || grupoLinha === filters.grupoId;
+				const atendeSubgrupo = !filters.subgrupoId || subgrupoLinha === filters.subgrupoId;
 
-			const atendeNome = !nome || nomeLinha.includes(nome);
-			const atendeMarca = !marca || marcaLinha === marca;
-			const atendeCategoria = !categoria || categoriaLinha === categoria;
-			const atendeGrupo = !grupo || grupoLinha === grupo;
-			const atendeSubgrupo = !subgrupo || subgrupoLinha === subgrupo;
-
-			const exibir = atendeNome && atendeMarca && atendeCategoria && atendeGrupo && atendeSubgrupo;
-			linha.style.display = exibir ? "" : "none";
+				return atendeNome && atendeMarca && atendeCategoria && atendeGrupo && atendeSubgrupo;
+			}
 		});
 	}
 

@@ -13,10 +13,9 @@ public class SkuUtil {
 		}
 
 		String prefixoNome = normalizar(parte(produto.getNome(), 4));
-		String prefixoCor = normalizar(parte(produto.getCor(), 3));
 		String prefixoTamanho = normalizar(parte(produto.getTamanho(), 3));
 
-		return "PROD" + produto.getId() + "-" + prefixoNome + "-" + prefixoCor + "-" + prefixoTamanho;
+		return "PROD" + produto.getId() + "-" + prefixoNome + "-" + prefixoTamanho;
 	}
 
 	private static String parte(String valor, int max) {

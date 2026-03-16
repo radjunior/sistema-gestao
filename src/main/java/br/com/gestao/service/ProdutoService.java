@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.List;
 
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import br.com.gestao.entity.Estoque;
@@ -23,6 +24,20 @@ public class ProdutoService {
 
 	public Produto consultarProdutoPorId(Long id) {
 		return produtoRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("Produto não encontrado"));
+	}
+	
+	public void processarSkuProdutos() {
+		List<Produto> produtos = consultarProduto();
+		int size = produtos.size();
+		int count = 0;
+		for (Produto p : produtos) {
+			if (p.getSku() == null || p.getSku().isBlank()) {
+				count++;
+				p.setSku(SkuUtil.gerarSku(p));
+				Produto save = produtoRepository.save(p);
+				System.out.println("[" + count + "/" + size + "] - " + save.getSku());
+			}
+		}
 	}
 
 	public void salvarProduto(Produto produto) throws Exception {
@@ -78,9 +93,6 @@ public class ProdutoService {
 		if (produto.getMargem().compareTo(BigDecimal.ZERO) < 0) {
 			throw new Exception("Margem não pode ser negativa.");
 		}
-		if (produto.getCor() != null && produto.getCor().length() > 50) {
-			throw new Exception("Cor deve ter no máximo 50 caracteres.");
-		}
 		if (produto.getTamanho() != null && produto.getTamanho().length() > 20) {
 			throw new Exception("Tamanho deve ter no máximo 20 caracteres.");
 		}
@@ -89,10 +101,6 @@ public class ProdutoService {
 		}
 		if (produto.getSku() != null && produto.getSku().length() > 60) {
 			throw new Exception("SKU deve ter no máximo 60 caracteres.");
-		}
-		if ((produto.getCor() == null || produto.getCor().isBlank())
-				&& (produto.getTamanho() == null || produto.getTamanho().isBlank())) {
-			throw new Exception("Informe ao menos cor ou tamanho para o produto.");
 		}
 	}
 
@@ -139,7 +147,7 @@ public class ProdutoService {
 	}
 
 	public List<Produto> consultarProduto() {
-		return produtoRepository.consultarProdutos();
+		return produtoRepository.findAll(Sort.by("nome"));
 	}
 
 }
