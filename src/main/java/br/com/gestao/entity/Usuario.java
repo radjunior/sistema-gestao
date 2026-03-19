@@ -17,6 +17,8 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Column;
 import jakarta.persistence.Transient;
 
 @Entity
@@ -28,6 +30,14 @@ public class Usuario extends EntityAudit implements UserDetails {
 	private String nomeCompleto;
 	private String usuario;
 	private String senha;
+
+	@Column(nullable = false)
+	private boolean ativo = true;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "empresa_id")
+	private Empresa empresa;
+
 	@Transient
 	private String confirmeSenha;
 
@@ -118,7 +128,7 @@ public class Usuario extends EntityAudit implements UserDetails {
 
 	@Override
 	public boolean isEnabled() {
-		return true;
+		return ativo && (empresa == null || empresa.permiteLogin());
 	}
 
 	public Set<Perfil> getPerfis() {
@@ -143,6 +153,26 @@ public class Usuario extends EntityAudit implements UserDetails {
 
 	public void setConfirmeSenha(String confirmeSenha) {
 		this.confirmeSenha = confirmeSenha;
+	}
+
+	public boolean isAtivo() {
+		return ativo;
+	}
+
+	public void setAtivo(boolean ativo) {
+		this.ativo = ativo;
+	}
+
+	public Empresa getEmpresa() {
+		return empresa;
+	}
+
+	public void setEmpresa(Empresa empresa) {
+		this.empresa = empresa;
+	}
+
+	public boolean possuiPerfil(String nomePerfil) {
+		return perfis.stream().anyMatch(perfil -> perfil.getNome().equalsIgnoreCase(nomePerfil));
 	}
 
 }

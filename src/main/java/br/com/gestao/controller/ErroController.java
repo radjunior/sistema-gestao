@@ -10,6 +10,11 @@ import jakarta.servlet.http.HttpServletRequest;
 @Controller
 public class ErroController implements ErrorController {
 
+	@RequestMapping("/403")
+	public String acessoNegado() {
+		return "error/403";
+	}
+
 	@RequestMapping("/error")
 	public String handleError(HttpServletRequest request) {
 		Object status = request.getAttribute(RequestDispatcher.ERROR_STATUS_CODE);

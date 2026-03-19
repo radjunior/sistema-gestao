@@ -1,0 +1,138 @@
+<html lang="pt-br"
+	xmlns:th="http://www.thymeleaf.org"
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorate="~{template}">
+
+<head>
+	<title>Empresas</title>
+</head>
+
+<body>
+	<div layout:fragment="conteudo">
+		<div class="container py-3">
+			<div class="card mb-3">
+				<div class="card-header">Cadastro de empresa</div>
+				<form th:action="@{/admin/empresas}" method="post">
+					<div class="card-body row g-3">
+						<input type="hidden" name="empresaId" th:value="${form.empresaId}">
+						<div class="col-md-4">
+							<label class="form-label">Nome fantasia</label>
+							<input class="form-control" name="nomeFantasia" th:value="${form.nomeFantasia}" required>
+						</div>
+						<div class="col-md-4">
+							<label class="form-label">Razao social</label>
+							<input class="form-control" name="razaoSocial" th:value="${form.razaoSocial}">
+						</div>
+						<div class="col-md-4">
+							<label class="form-label">CNPJ</label>
+							<input class="form-control" name="cnpj" th:value="${form.cnpj}">
+						</div>
+						<div class="col-md-3">
+							<label class="form-label">Slug</label>
+							<input class="form-control" name="slug" th:value="${form.slug}" required>
+						</div>
+						<div class="col-md-3">
+							<label class="form-label">Email</label>
+							<input type="email" class="form-control" name="email" th:value="${form.email}">
+						</div>
+						<div class="col-md-2">
+							<label class="form-label">Telefone</label>
+							<input class="form-control" name="telefone" th:value="${form.telefone}">
+						</div>
+						<div class="col-md-2">
+							<label class="form-label">Status</label>
+							<select class="form-select" name="status">
+								<option th:each="status : ${statusOptions}" th:value="${status}" th:text="${status}" th:selected="${status == form.status}"></option>
+							</select>
+						</div>
+						<div class="col-md-2">
+							<label class="form-label">Plano</label>
+							<select class="form-select" name="plano">
+								<option th:each="plano : ${planoOptions}" th:value="${plano}" th:text="${plano}" th:selected="${plano == form.plano}"></option>
+							</select>
+						</div>
+						<div class="col-md-2">
+							<label class="form-label">Data inicio</label>
+							<input type="date" class="form-control" name="dataInicio" th:value="${form.dataInicio}">
+						</div>
+						<div class="col-md-2">
+							<label class="form-label">Data vencimento</label>
+							<input type="date" class="form-control" name="dataVencimento" th:value="${form.dataVencimento}">
+						</div>
+						<div class="col-md-2 d-flex align-items-end">
+							<div class="form-check">
+								<input class="form-check-input" type="checkbox" name="ativo" th:checked="${form.ativo}">
+								<label class="form-check-label">Empresa ativa</label>
+							</div>
+						</div>
+						<div class="col-12"><hr></div>
+						<div class="col-12">
+							<h5 class="mb-0">Administrador inicial da empresa</h5>
+							<small class="text-muted">Obrigatorio apenas ao criar uma nova empresa.</small>
+						</div>
+						<div class="col-md-4">
+							<label class="form-label">Nome completo</label>
+							<input class="form-control" name="adminNomeCompleto" th:value="${form.adminNomeCompleto}">
+						</div>
+						<div class="col-md-3">
+							<label class="form-label">Login</label>
+							<input class="form-control" name="adminUsuario" th:value="${form.adminUsuario}">
+						</div>
+						<div class="col-md-2">
+							<label class="form-label">Senha</label>
+							<input type="password" class="form-control" name="adminSenha">
+						</div>
+						<div class="col-md-2">
+							<label class="form-label">Confirmar senha</label>
+							<input type="password" class="form-control" name="adminConfirmeSenha">
+						</div>
+						<div class="col-md-1 d-flex align-items-end">
+							<div class="form-check">
+								<input class="form-check-input" type="checkbox" name="adminAtivo" th:checked="${form.adminAtivo}">
+								<label class="form-check-label">Ativo</label>
+							</div>
+						</div>
+						<div class="col-12 text-end">
+							<button class="btn btn-success" type="submit">Salvar</button>
+						</div>
+					</div>
+				</form>
+			</div>
+
+			<div class="card">
+				<div class="card-header">Empresas cadastradas</div>
+				<div class="card-body">
+					<table class="table table-striped table-sm align-middle">
+						<thead>
+							<tr>
+								<th>ID</th>
+								<th>Nome fantasia</th>
+								<th>Slug</th>
+								<th>Status</th>
+								<th>Plano</th>
+								<th>Ativa</th>
+								<th class="text-end">Editar</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr th:each="empresa : ${empresas}">
+								<td th:text="${empresa.id}"></td>
+								<td th:text="${empresa.nomeFantasia}"></td>
+								<td th:text="${empresa.slug}"></td>
+								<td th:text="${empresa.status}"></td>
+								<td th:text="${empresa.plano}"></td>
+								<td th:text="${empresa.ativo ? 'Sim' : 'Nao'}"></td>
+								<td class="text-end">
+									<a class="btn btn-primary btn-sm" th:href="@{/admin/empresas(id=${empresa.id})}">
+										<i class="bi bi-pencil-square"></i>
+									</a>
+								</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+			</div>
+		</div>
+	</div>
+</body>
+</html>

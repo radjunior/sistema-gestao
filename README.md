@@ -8,6 +8,8 @@ O projeto possui autenticacao com Spring Security e modulos de cadastro para:
 - Categoria
 - Grupo e Subgrupo
 - Marca
+- Empresa
+- Usuarios por empresa
 
 ## Stack
 
@@ -28,8 +30,11 @@ O projeto possui autenticacao com Spring Security e modulos de cadastro para:
 - Cadastro, edicao e exclusao de categorias
 - Cadastro, edicao e exclusao de grupos e subgrupos
 - Cadastro, edicao e exclusao de marcas
+- Cadastro e administracao de empresas por `ADMIN_SAAS`
+- Cadastro de usuarios por `ADMIN_EMPRESA`
 - Controle de estoque direto no cadastro de produto
 - Geracao automatica de SKU quando nao informado
+- Isolamento de dados por empresa (multiempresa)
 
 ## Estrutura do projeto
 
@@ -59,6 +64,7 @@ src/main/resources
 - `Marca`
 - `Usuario`
 - `Perfil`
+- `Empresa`
 - `Estoque`
 
 ## Perfis e configuracao
@@ -94,6 +100,18 @@ DB_DRIVER=org.postgresql.Driver
 ```
 
 ## Como executar
+
+### Bootstrap opcional do primeiro ADMIN_SAAS
+
+Se voce ainda nao tiver um usuario `ADMIN_SAAS`, pode subir a aplicacao com:
+
+```bash
+APP_BOOTSTRAP_ADMIN_SAAS_NOME=Administrador SaaS
+APP_BOOTSTRAP_ADMIN_SAAS_USUARIO=adminsaas
+APP_BOOTSTRAP_ADMIN_SAAS_SENHA=senha-forte
+```
+
+Na primeira subida, o sistema cria o usuario automaticamente se o login ainda nao existir.
 
 ### 1. Compilar
 
@@ -133,6 +151,10 @@ java -jar target/sistema-gestao.jar
 ## Banco de dados
 
 O projeto esta configurado com `spring.jpa.hibernate.ddl-auto=validate`, entao o schema precisa existir e estar alinhado com as entidades JPA antes da inicializacao.
+
+Para a evolucao multiempresa, use o script:
+
+- `doc/MIGRACAO_MULTIEMPRESA.sql`
 
 ## Testes
 

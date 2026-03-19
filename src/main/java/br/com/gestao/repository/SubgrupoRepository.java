@@ -11,8 +11,14 @@ import br.com.gestao.entity.Subgrupo;
 @Repository
 public interface SubgrupoRepository extends JpaRepository<Subgrupo, Long>{
 
-	boolean existsByNome(String nome);
+	List<Subgrupo> findAllByEmpresaIdOrderByNomeAsc(Long empresaId);
 
-	Optional<List<Subgrupo>> findByGrupoId(Long id);
+	Optional<Subgrupo> findByIdAndEmpresaId(Long id, Long empresaId);
+
+	boolean existsByNomeIgnoreCaseAndEmpresaId(String nome, Long empresaId);
+
+	boolean existsByNomeIgnoreCaseAndEmpresaIdAndIdNot(String nome, Long empresaId, Long id);
+
+	List<Subgrupo> findByGrupoIdAndEmpresaIdOrderByNomeAsc(Long id, Long empresaId);
 
 }

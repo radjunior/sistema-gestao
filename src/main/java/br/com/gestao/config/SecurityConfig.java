@@ -18,6 +18,10 @@ public class SecurityConfig {
 	SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 		return http.authorizeHttpRequests(auth -> {
 			auth.requestMatchers(patterns).permitAll();
+			auth.requestMatchers("/login").permitAll();
+			auth.requestMatchers("/admin/**").hasAuthority("ADMIN_SAAS");
+			auth.requestMatchers("/empresa/usuarios/**").hasAuthority("ADMIN_EMPRESA");
+			auth.requestMatchers("/cadastro/**").hasAnyAuthority("ADMIN_EMPRESA", "GERENTE", "OPERADOR");
 			auth.anyRequest().authenticated();
 		}).formLogin(login -> {
 			login.loginPage("/login").defaultSuccessUrl("/home").permitAll();
@@ -27,7 +31,7 @@ public class SecurityConfig {
 		}).rememberMe(me -> {
 			me.key("lembrarDeMim");
 			me.alwaysRemember(true);
-		}).build();
+		}).exceptionHandling(exception -> exception.accessDeniedPage("/403")).build();
 	}
 
 	@Bean

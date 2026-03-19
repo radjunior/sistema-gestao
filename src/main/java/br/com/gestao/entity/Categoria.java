@@ -5,6 +5,9 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 
 @Entity
 public class Categoria extends EntityAudit {
@@ -12,7 +15,12 @@ public class Categoria extends EntityAudit {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
-	@Column(nullable = false, unique = true, length = 100)
+
+	@ManyToOne(fetch = FetchType.LAZY, optional = false)
+	@JoinColumn(name = "empresa_id", nullable = false)
+	private Empresa empresa;
+
+	@Column(nullable = false, length = 100)
 	private String nome;
 
 	public Categoria() {
@@ -26,6 +34,14 @@ public class Categoria extends EntityAudit {
 		this.id = id;
 	}
 
+	public Empresa getEmpresa() {
+		return empresa;
+	}
+
+	public void setEmpresa(Empresa empresa) {
+		this.empresa = empresa;
+	}
+
 	public String getNome() {
 		return nome;
 	}
@@ -36,7 +52,7 @@ public class Categoria extends EntityAudit {
 
 	@Override
 	public String toString() {
-		return "Categoria [id=" + id + ", nome=" + nome + "]";
+		return "Categoria [id=" + id + ", empresa=" + (empresa != null ? empresa.getId() : null) + ", nome=" + nome + "]";
 	}
 
 }

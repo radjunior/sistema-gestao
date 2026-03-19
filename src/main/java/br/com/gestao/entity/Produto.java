@@ -22,6 +22,10 @@ public class Produto extends EntityAudit {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
+	@ManyToOne(fetch = FetchType.LAZY, optional = false)
+	@JoinColumn(name = "empresa_id", nullable = false)
+	private Empresa empresa;
+
 	@Column(nullable = false, length = 150)
 	private String nome;
 
@@ -47,7 +51,7 @@ public class Produto extends EntityAudit {
 	@Column(nullable = false)
 	private boolean ativo = true;
 
-	@Column(nullable = false, unique = true, length = 60)
+	@Column(nullable = false, length = 60)
 	private String sku;
 
 	@Column(name = "codigo_barra", length = 60)
@@ -89,6 +93,14 @@ public class Produto extends EntityAudit {
 
 	public void setId(Long id) {
 		this.id = id;
+	}
+
+	public Empresa getEmpresa() {
+		return empresa;
+	}
+
+	public void setEmpresa(Empresa empresa) {
+		this.empresa = empresa;
 	}
 
 	public String getNome() {
@@ -216,8 +228,9 @@ public class Produto extends EntityAudit {
 
 	@Override
 	public String toString() {
-		return "Produto [id=" + id + ", nome=" + nome + ", descricao=" + descricao + ", marca=" + marca + ", categoria="
-				+ categoria + ", grupo=" + grupo + ", subgrupo=" + subgrupo + ", ativo=" + ativo + ", sku=" + sku
+		return "Produto [id=" + id + ", empresa=" + (empresa != null ? empresa.getId() : null) + ", nome=" + nome
+				+ ", descricao=" + descricao + ", marca=" + marca + ", categoria=" + categoria + ", grupo=" + grupo
+				+ ", subgrupo=" + subgrupo + ", ativo=" + ativo + ", sku=" + sku
 				+ ", codigoBarra=" + codigoBarra + ", tamanho=" + tamanho + ", custo=" + custo + ", margem=" + margem
 				+ ", preco=" + preco + ", estoque=" + estoque + ", ncm=" + ncm + "]";
 	}

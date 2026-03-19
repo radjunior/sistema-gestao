@@ -4,74 +4,97 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.List;
 
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import br.com.gestao.entity.Categoria;
 import br.com.gestao.entity.Estoque;
+import br.com.gestao.entity.Grupo;
+import br.com.gestao.entity.Marca;
 import br.com.gestao.entity.Produto;
+import br.com.gestao.entity.Subgrupo;
+import br.com.gestao.repository.CategoriaRepository;
+import br.com.gestao.repository.GrupoRepository;
+import br.com.gestao.repository.MarcaRepository;
 import br.com.gestao.repository.ProdutoRepository;
+import br.com.gestao.repository.SubgrupoRepository;
 import br.com.gestao.util.SkuUtil;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.transaction.Transactional;
 
 @Service
 public class ProdutoService {
 
 	private final ProdutoRepository produtoRepository;
+	private final MarcaRepository marcaRepository;
+	private final CategoriaRepository categoriaRepository;
+	private final GrupoRepository grupoRepository;
+	private final SubgrupoRepository subgrupoRepository;
+	private final ContextoUsuarioService contextoUsuarioService;
 
-	public ProdutoService(ProdutoRepository produtoRepository) {
+	public ProdutoService(ProdutoRepository produtoRepository, MarcaRepository marcaRepository,
+			CategoriaRepository categoriaRepository, GrupoRepository grupoRepository,
+			SubgrupoRepository subgrupoRepository, ContextoUsuarioService contextoUsuarioService) {
 		this.produtoRepository = produtoRepository;
+		this.marcaRepository = marcaRepository;
+		this.categoriaRepository = categoriaRepository;
+		this.grupoRepository = grupoRepository;
+		this.subgrupoRepository = subgrupoRepository;
+		this.contextoUsuarioService = contextoUsuarioService;
 	}
 
 	public Produto consultarProdutoPorId(Long id) {
-		return produtoRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("Produto não encontrado"));
+		return produtoRepository.findByIdAndEmpresaId(id, contextoUsuarioService.getEmpresaIdObrigatoria())
+				.orElseThrow(() -> new EntityNotFoundException("Produto nao encontrado"));
 	}
-	
-	public void processarSkuProdutos() {
+
+	@Transactional
+	public void processarSkuProdutos() throws Exception {
 		List<Produto> produtos = consultarProduto();
-		int size = produtos.size();
-		int count = 0;
-		for (Produto p : produtos) {
-			if (p.getSku() == null || p.getSku().isBlank()) {
-				count++;
-				p.setSku(SkuUtil.gerarSku(p));
-				Produto save = produtoRepository.save(p);
-				System.out.println("[" + count + "/" + size + "] - " + save.getSku());
+		for (Produto produto : produtos) {
+			if (produto.getSku() == null || produto.getSku().isBlank()) {
+				produto.setSku(SkuUtil.gerarSku(produto));
+				validarSku(produto);
+				produtoRepository.save(produto);
 			}
 		}
 	}
 
+	@Transactional
 	public void salvarProduto(Produto produto) throws Exception {
 		if (produto == null) {
-			throw new Exception("Produto inválido");
-		}
-		if (produto.getNome() == null || produto.getNome().isBlank()) {
-			throw new Exception("Nome inválido");
-		}
-		if (produto.getMarca() == null || produto.getMarca().getId() == null) {
-			throw new Exception("Marca inválida");
-		}
-		if (produto.getCategoria() == null || produto.getCategoria().getId() == null) {
-			throw new Exception("Categoria inválida");
-		}
-		if (produto.getGrupo() == null || produto.getGrupo().getId() == null) {
-			throw new Exception("Grupo inválido");
-		}
-		if (produto.getSubgrupo() == null || produto.getSubgrupo().getId() == null) {
-			throw new Exception("Subgrupo inválido");
-		}
-		if (produto.getId() == null && produtoRepository.existsByNome(produto.getNome())) {
-			throw new Exception("Produto já existente");
+			throw new Exception("Produto invalido");
 		}
 
-		validarDadosComerciais(produto);
-		configurarEstoque(produto);
-		produto.setPreco(calcularPreco(produto.getCusto(), produto.getMargem()));
+		Long empresaId = contextoUsuarioService.getEmpresaIdObrigatoria();
+		Produto entidade = produto.getId() == null ? new Produto() : consultarProdutoPorId(produto.getId());
 
-		if (produto.getSku() != null && !produto.getSku().isBlank()) {
-			validarSku(produto);
+		entidade.setEmpresa(contextoUsuarioService.getEmpresaObrigatoria());
+		entidade.setNome(validarTextoObrigatorio(produto.getNome(), "Nome invalido"));
+		entidade.setDescricao(textoOuNull(produto.getDescricao()));
+		entidade.setCodigoBarra(textoOuNull(produto.getCodigoBarra()));
+		entidade.setTamanho(textoOuNull(produto.getTamanho()));
+		entidade.setAtivo(produto.isAtivo());
+		entidade.setNcm(textoOuNull(produto.getNcm()));
+		entidade.setCusto(validarValor(produto.getCusto(), "Custo nao informado."));
+		entidade.setMargem(validarValor(produto.getMargem(), "Margem nao informada."));
+		entidade.setPreco(calcularPreco(entidade.getCusto(), entidade.getMargem()));
+
+		entidade.setMarca(buscarMarcaDaEmpresa(produto.getMarca(), empresaId));
+		entidade.setCategoria(buscarCategoriaDaEmpresa(produto.getCategoria(), empresaId));
+		entidade.setGrupo(buscarGrupoDaEmpresa(produto.getGrupo(), empresaId));
+		entidade.setSubgrupo(buscarSubgrupoDaEmpresa(produto.getSubgrupo(), empresaId));
+
+		validarRelacionamentos(entidade);
+		validarDadosComerciais(entidade);
+		configurarEstoque(entidade, produto.getEstoque());
+
+		String skuInformado = textoOuNull(produto.getSku());
+		if (skuInformado != null) {
+			entidade.setSku(skuInformado);
+			validarSku(entidade);
 		}
 
-		Produto produtoSalvo = produtoRepository.save(produto);
+		Produto produtoSalvo = produtoRepository.save(entidade);
 
 		if (produtoSalvo.getSku() == null || produtoSalvo.getSku().isBlank()) {
 			produtoSalvo.setSku(SkuUtil.gerarSku(produtoSalvo));
@@ -80,61 +103,113 @@ public class ProdutoService {
 		}
 	}
 
-	private void validarDadosComerciais(Produto produto) throws Exception {
-		if (produto.getCusto() == null) {
-			throw new Exception("Custo não informado.");
+	private void validarRelacionamentos(Produto produto) throws Exception {
+		if (produto.getMarca() == null || produto.getMarca().getId() == null) {
+			throw new Exception("Marca invalida");
 		}
-		if (produto.getMargem() == null) {
-			throw new Exception("Margem não informada.");
+		if (produto.getCategoria() == null || produto.getCategoria().getId() == null) {
+			throw new Exception("Categoria invalida");
 		}
-		if (produto.getCusto().compareTo(BigDecimal.ZERO) < 0) {
-			throw new Exception("Custo não pode ser negativo.");
+		if (produto.getGrupo() == null || produto.getGrupo().getId() == null) {
+			throw new Exception("Grupo invalido");
 		}
-		if (produto.getMargem().compareTo(BigDecimal.ZERO) < 0) {
-			throw new Exception("Margem não pode ser negativa.");
+		if (produto.getSubgrupo() == null || produto.getSubgrupo().getId() == null) {
+			throw new Exception("Subgrupo invalido");
 		}
-		if (produto.getTamanho() != null && produto.getTamanho().length() > 20) {
-			throw new Exception("Tamanho deve ter no máximo 20 caracteres.");
-		}
-		if (produto.getCodigoBarra() != null && produto.getCodigoBarra().length() > 60) {
-			throw new Exception("Código de barras deve ter no máximo 60 caracteres.");
-		}
-		if (produto.getSku() != null && produto.getSku().length() > 60) {
-			throw new Exception("SKU deve ter no máximo 60 caracteres.");
+		if (!produto.getGrupo().getId().equals(produto.getSubgrupo().getGrupo().getId())) {
+			throw new Exception("Subgrupo nao pertence ao grupo informado.");
 		}
 	}
 
-	private void configurarEstoque(Produto produto) throws Exception {
+	private void validarDadosComerciais(Produto produto) throws Exception {
+		if (produto.getCusto().compareTo(BigDecimal.ZERO) < 0) {
+			throw new Exception("Custo nao pode ser negativo.");
+		}
+		if (produto.getMargem().compareTo(BigDecimal.ZERO) < 0) {
+			throw new Exception("Margem nao pode ser negativa.");
+		}
+		if (produto.getTamanho() != null && produto.getTamanho().length() > 20) {
+			throw new Exception("Tamanho deve ter no maximo 20 caracteres.");
+		}
+		if (produto.getCodigoBarra() != null && produto.getCodigoBarra().length() > 60) {
+			throw new Exception("Codigo de barras deve ter no maximo 60 caracteres.");
+		}
+		if (produto.getSku() != null && produto.getSku().length() > 60) {
+			throw new Exception("SKU deve ter no maximo 60 caracteres.");
+		}
+	}
+
+	private void configurarEstoque(Produto produto, Estoque estoqueEntrada) throws Exception {
+		if (estoqueEntrada == null) {
+			throw new Exception("Estoque nao informado.");
+		}
+		if (estoqueEntrada.getQuantidade() == null) {
+			throw new Exception("Quantidade em estoque nao informada.");
+		}
+		if (estoqueEntrada.getEstoqueMinimo() == null) {
+			throw new Exception("Estoque minimo nao informado.");
+		}
+		if (estoqueEntrada.getQuantidade() < 0) {
+			throw new Exception("Quantidade em estoque nao pode ser negativa.");
+		}
+		if (estoqueEntrada.getEstoqueMinimo() < 0) {
+			throw new Exception("Estoque minimo nao pode ser negativo.");
+		}
+
 		Estoque estoque = produto.getEstoque();
 		if (estoque == null) {
-			throw new Exception("Estoque não informado.");
+			estoque = new Estoque();
+			produto.setEstoque(estoque);
 		}
-		if (estoque.getQuantidade() == null) {
-			throw new Exception("Quantidade em estoque não informada.");
-		}
-		if (estoque.getEstoqueMinimo() == null) {
-			throw new Exception("Estoque mínimo não informado.");
-		}
-		if (estoque.getQuantidade() < 0) {
-			throw new Exception("Quantidade em estoque não pode ser negativa.");
-		}
-		if (estoque.getEstoqueMinimo() < 0) {
-			throw new Exception("Estoque mínimo não pode ser negativo.");
-		}
+		estoque.setQuantidade(estoqueEntrada.getQuantidade());
+		estoque.setEstoqueMinimo(estoqueEntrada.getEstoqueMinimo());
 		estoque.setProduto(produto);
 	}
 
 	private void validarSku(Produto produto) throws Exception {
+		Long empresaId = contextoUsuarioService.getEmpresaIdObrigatoria();
 		if (produto.getId() == null) {
-			if (produtoRepository.existsBySku(produto.getSku())) {
-				throw new Exception("Já existe um produto com o SKU informado: " + produto.getSku());
+			if (produtoRepository.existsBySkuIgnoreCaseAndEmpresaId(produto.getSku(), empresaId)) {
+				throw new Exception("Ja existe um produto com o SKU informado: " + produto.getSku());
 			}
 			return;
 		}
 
-		if (produtoRepository.existsBySkuAndIdNot(produto.getSku(), produto.getId())) {
-			throw new Exception("Já existe outro produto com o SKU informado: " + produto.getSku());
+		if (produtoRepository.existsBySkuIgnoreCaseAndEmpresaIdAndIdNot(produto.getSku(), empresaId, produto.getId())) {
+			throw new Exception("Ja existe outro produto com o SKU informado: " + produto.getSku());
 		}
+	}
+
+	private Marca buscarMarcaDaEmpresa(Marca marca, Long empresaId) {
+		if (marca == null || marca.getId() == null) {
+			return null;
+		}
+		return marcaRepository.findByIdAndEmpresaId(marca.getId(), empresaId)
+				.orElseThrow(() -> new EntityNotFoundException("Marca nao encontrada."));
+	}
+
+	private Categoria buscarCategoriaDaEmpresa(Categoria categoria, Long empresaId) {
+		if (categoria == null || categoria.getId() == null) {
+			return null;
+		}
+		return categoriaRepository.findByIdAndEmpresaId(categoria.getId(), empresaId)
+				.orElseThrow(() -> new EntityNotFoundException("Categoria nao encontrada."));
+	}
+
+	private Grupo buscarGrupoDaEmpresa(Grupo grupo, Long empresaId) {
+		if (grupo == null || grupo.getId() == null) {
+			return null;
+		}
+		return grupoRepository.findByIdAndEmpresaId(grupo.getId(), empresaId)
+				.orElseThrow(() -> new EntityNotFoundException("Grupo nao encontrado."));
+	}
+
+	private Subgrupo buscarSubgrupoDaEmpresa(Subgrupo subgrupo, Long empresaId) {
+		if (subgrupo == null || subgrupo.getId() == null) {
+			return null;
+		}
+		return subgrupoRepository.findByIdAndEmpresaId(subgrupo.getId(), empresaId)
+				.orElseThrow(() -> new EntityNotFoundException("Subgrupo nao encontrado."));
 	}
 
 	private BigDecimal calcularPreco(BigDecimal custo, BigDecimal margem) {
@@ -143,11 +218,28 @@ public class ProdutoService {
 	}
 
 	public void excluirProduto(Produto produto) {
-		produtoRepository.deleteById(produto.getId());
+		produtoRepository.delete(consultarProdutoPorId(produto.getId()));
 	}
 
 	public List<Produto> consultarProduto() {
-		return produtoRepository.findAll(Sort.by("nome"));
+		return produtoRepository.findAllByEmpresaIdOrderByNomeAsc(contextoUsuarioService.getEmpresaIdObrigatoria());
 	}
 
+	private String validarTextoObrigatorio(String valor, String mensagem) throws Exception {
+		if (valor == null || valor.isBlank()) {
+			throw new Exception(mensagem);
+		}
+		return valor.trim();
+	}
+
+	private String textoOuNull(String valor) {
+		return valor == null || valor.isBlank() ? null : valor.trim();
+	}
+
+	private BigDecimal validarValor(BigDecimal valor, String mensagem) throws Exception {
+		if (valor == null) {
+			throw new Exception(mensagem);
+		}
+		return valor;
+	}
 }

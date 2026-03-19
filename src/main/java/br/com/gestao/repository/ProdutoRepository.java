@@ -1,5 +1,8 @@
 package br.com.gestao.repository;
 
+import java.util.List;
+import java.util.Optional;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -8,10 +11,16 @@ import br.com.gestao.entity.Produto;
 @Repository
 public interface ProdutoRepository extends JpaRepository<Produto, Long> {
 
-	boolean existsByNome(String nome);
+	List<Produto> findAllByEmpresaIdOrderByNomeAsc(Long empresaId);
 
-	boolean existsBySku(String sku);
+	Optional<Produto> findByIdAndEmpresaId(Long id, Long empresaId);
 
-	boolean existsBySkuAndIdNot(String sku, Long id);
+	boolean existsByNomeIgnoreCaseAndEmpresaId(String nome, Long empresaId);
+
+	boolean existsByNomeIgnoreCaseAndEmpresaIdAndIdNot(String nome, Long empresaId, Long id);
+
+	boolean existsBySkuIgnoreCaseAndEmpresaId(String sku, Long empresaId);
+
+	boolean existsBySkuIgnoreCaseAndEmpresaIdAndIdNot(String sku, Long empresaId, Long id);
 
 }

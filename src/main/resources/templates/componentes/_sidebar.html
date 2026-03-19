@@ -1,18 +1,21 @@
-<div xmlns:th="http://www.thymeleaf.org" th:fragment="sidebar">
+<div xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" th:fragment="sidebar">
 
 	<nav class="navbar navbar-expand-lg bg-body-tertiary" data-bs-theme="dark">
 		<div class="container-fluid">
 			<img th:src="@{/assets/logo.png}" style="width: 35px;border-radius: 10px;margin-right: 10px;" alt="logo">
-			<a class="navbar-brand" href="#">Sistema de Gestão</a>
+			<a class="navbar-brand" th:href="@{/home}">
+				<span>Sistema de Gestao</span>
+				<span class="d-block small text-info" th:text="${empresaAtual != null ? empresaAtual.nomeFantasia : 'Painel SaaS'}"></span>
+			</a>
 			<button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
 				<span class="navbar-toggler-icon"></span>
 			</button>
 			<div class="collapse navbar-collapse" id="navbarSupportedContent">
 				<ul class="navbar-nav me-auto mb-2 mb-lg-0">
 					<li class="nav-item">
-						<a class="nav-link active"aria-current="page" th:href="@{/home}"><i class="bi bi-house"></i> Home</a>
+						<a class="nav-link active" aria-current="page" th:href="@{/home}"><i class="bi bi-house"></i> Home</a>
 					</li>
-					<li class="nav-item dropdown">
+					<li class="nav-item dropdown" sec:authorize="hasAnyAuthority('ADMIN_EMPRESA', 'GERENTE', 'OPERADOR')">
 						<a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi bi-folder-fill"></i> Cadastro</a>
 						<ul class="dropdown-menu">
 							<li><a class="dropdown-item" th:href="@{/cadastro/produto}">Produto</a></li>
@@ -21,8 +24,24 @@
 							<li><a class="dropdown-item" th:href="@{/cadastro/marca}">Marca</a></li>
 						</ul>
 					</li>
+					<li class="nav-item dropdown" sec:authorize="hasAuthority('ADMIN_SAAS')">
+						<a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi bi-building"></i> SaaS</a>
+						<ul class="dropdown-menu">
+							<li><a class="dropdown-item" th:href="@{/admin/empresas}">Empresas</a></li>
+						</ul>
+					</li>
+					<li class="nav-item dropdown" sec:authorize="hasAuthority('ADMIN_EMPRESA')">
+						<a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi bi-people"></i> Usuarios</a>
+						<ul class="dropdown-menu">
+							<li><a class="dropdown-item" th:href="@{/empresa/usuarios}">Gestao de usuarios</a></li>
+						</ul>
+					</li>
 				</ul>
-				<div class="d-flex">
+				<div class="d-flex align-items-center">
+					<div class="text-light me-3 text-end">
+						<div class="small" th:text="${usuarioLogado != null ? usuarioLogado.nomeCompleto : ''}"></div>
+						<div class="small text-info" th:text="${usuarioLogado != null ? usuarioLogado.usuario : ''}"></div>
+					</div>
 					<button class="btn btn-outline-info me-2" data-bs-toggle="offcanvas" data-bs-target="#offc-notificacoes" role="button" aria-controls="offcanvasExample"><i class="bi bi-bell-fill"></i></button>
 					<form th:action="@{/logout}" method="post" style="margin: 0;">
 						<button class="btn btn-outline-success" type="submit"><i class="bi bi-box-arrow-right"></i></button>
@@ -31,15 +50,15 @@
 			</div>
 		</div>
 	</nav>
-	
+
 	<div class="offcanvas offcanvas-end offcanvas-largura" data-bs-backdrop="static" tabindex="-1" id="offc-notificacoes" aria-labelledby="staticBackdropLabel">
 		<div class="offcanvas-header">
-			<h5 class="offcanvas-title" id="staticBackdropLabel">Notificações</h5>
+			<h5 class="offcanvas-title" id="staticBackdropLabel">Notificacoes</h5>
 			<button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
 		</div>
 		<div class="offcanvas-body">
 			<div class="container" id="acc-notificacoes"></div>
 		</div>
 	</div>
-	
+
 </div>
