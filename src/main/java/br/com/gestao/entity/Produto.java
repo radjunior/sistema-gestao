@@ -27,18 +27,11 @@ public class Produto extends EntityAudit {
 	private Empresa empresa;
 
 	@Column(nullable = false, length = 150)
-	private String nome;
-
-	@Column(length = 1000)
 	private String descricao;
 
 	@ManyToOne(fetch = FetchType.LAZY, optional = false)
 	@JoinColumn(name = "marca_id", nullable = false)
 	private Marca marca;
-
-	@ManyToOne(fetch = FetchType.LAZY, optional = false)
-	@JoinColumn(name = "categoria_id", nullable = false)
-	private Categoria categoria;
 
 	@ManyToOne(fetch = FetchType.LAZY, optional = false)
 	@JoinColumn(name = "grupo_id", nullable = false)
@@ -47,6 +40,10 @@ public class Produto extends EntityAudit {
 	@ManyToOne(fetch = FetchType.LAZY, optional = false)
 	@JoinColumn(name = "subgrupo_id", nullable = false)
 	private Subgrupo subgrupo;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "tamanho_id")
+	private Tamanho tamanho;
 
 	@Column(nullable = false)
 	private boolean ativo = true;
@@ -57,8 +54,8 @@ public class Produto extends EntityAudit {
 	@Column(name = "codigo_barra", length = 60)
 	private String codigoBarra;
 
-	@Column(length = 20)
-	private String tamanho;
+	@Column(name = "codigo_fabricante", length = 60)
+	private String codigoFabricante;
 
 	@Column(nullable = false, precision = 15, scale = 2)
 	@NumberFormat
@@ -80,9 +77,9 @@ public class Produto extends EntityAudit {
 
 	public Produto() {
 		this.marca = new Marca();
-		this.categoria = new Categoria();
 		this.grupo = new Grupo();
 		this.subgrupo = new Subgrupo();
+		this.tamanho = new Tamanho();
 		this.estoque = new Estoque();
 		this.estoque.setProduto(this);
 	}
@@ -103,14 +100,6 @@ public class Produto extends EntityAudit {
 		this.empresa = empresa;
 	}
 
-	public String getNome() {
-		return nome;
-	}
-
-	public void setNome(String nome) {
-		this.nome = nome;
-	}
-
 	public String getDescricao() {
 		return descricao;
 	}
@@ -127,14 +116,6 @@ public class Produto extends EntityAudit {
 		this.marca = marca;
 	}
 
-	public Categoria getCategoria() {
-		return categoria;
-	}
-
-	public void setCategoria(Categoria categoria) {
-		this.categoria = categoria;
-	}
-
 	public Grupo getGrupo() {
 		return grupo;
 	}
@@ -149,6 +130,14 @@ public class Produto extends EntityAudit {
 
 	public void setSubgrupo(Subgrupo subgrupo) {
 		this.subgrupo = subgrupo;
+	}
+
+	public Tamanho getTamanho() {
+		return tamanho;
+	}
+
+	public void setTamanho(Tamanho tamanho) {
+		this.tamanho = tamanho;
 	}
 
 	public boolean isAtivo() {
@@ -175,12 +164,12 @@ public class Produto extends EntityAudit {
 		this.codigoBarra = codigoBarra;
 	}
 
-	public String getTamanho() {
-		return tamanho;
+	public String getCodigoFabricante() {
+		return codigoFabricante;
 	}
 
-	public void setTamanho(String tamanho) {
-		this.tamanho = tamanho;
+	public void setCodigoFabricante(String codigoFabricante) {
+		this.codigoFabricante = codigoFabricante;
 	}
 
 	public BigDecimal getCusto() {
@@ -228,11 +217,10 @@ public class Produto extends EntityAudit {
 
 	@Override
 	public String toString() {
-		return "Produto [id=" + id + ", empresa=" + (empresa != null ? empresa.getId() : null) + ", nome=" + nome
-				+ ", descricao=" + descricao + ", marca=" + marca + ", categoria=" + categoria + ", grupo=" + grupo
-				+ ", subgrupo=" + subgrupo + ", ativo=" + ativo + ", sku=" + sku
-				+ ", codigoBarra=" + codigoBarra + ", tamanho=" + tamanho + ", custo=" + custo + ", margem=" + margem
-				+ ", preco=" + preco + ", estoque=" + estoque + ", ncm=" + ncm + "]";
+		return "Produto [id=" + id + ", empresa=" + (empresa != null ? empresa.getId() : null) + ", descricao="
+				+ descricao + ", marca=" + marca + ", grupo=" + grupo + ", subgrupo=" + subgrupo + ", tamanho="
+				+ tamanho + ", ativo=" + ativo + ", sku=" + sku + ", codigoBarra=" + codigoBarra
+				+ ", codigoFabricante=" + codigoFabricante + ", custo=" + custo + ", margem=" + margem + ", preco="
+				+ preco + ", estoque=" + estoque + ", ncm=" + ncm + "]";
 	}
-
 }

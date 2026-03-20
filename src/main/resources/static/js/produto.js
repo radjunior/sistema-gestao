@@ -3,9 +3,10 @@ const STORAGE_FORM_CADASTRO = "produto_form_cadastro_estado";
 document.addEventListener("DOMContentLoaded", function() {
 	const filtroNome = document.getElementById("filtro-produto");
 	const filtroMarca = document.getElementById("filtro-marca");
-	const filtroCategoria = document.getElementById("filtro-categoria");
 	const filtroGrupo = document.getElementById("filtro-grupo");
 	const filtroSubgrupo = document.getElementById("filtro-subgrupo");
+	const filtroTamanho = document.getElementById("filtro-tamanho");
+	const filtroCodigoFabricante = document.getElementById("filtro-codigo-fabricante");
 
 	const tabela = $("#tb-produto");
 
@@ -16,38 +17,42 @@ document.addEventListener("DOMContentLoaded", function() {
 	function aplicarFiltros() {
 		if (!tabela.length) return;
 
-		const nome = (filtroNome?.value || "").trim().toLowerCase();
+		const descricao = (filtroNome?.value || "").trim().toLowerCase();
 		const marca = filtroMarca?.value || "";
-		const categoria = filtroCategoria?.value || "";
 		const grupo = filtroGrupo?.value || "";
 		const subgrupo = filtroSubgrupo?.value || "";
+		const tamanho = filtroTamanho?.value || "";
+		const codigoFabricante = (filtroCodigoFabricante?.value || "").trim().toLowerCase();
 
 		tabela.bootstrapTable("filterBy", {
-			nome,
+			descricao,
 			marcaId: marca,
-			categoriaId: categoria,
 			grupoId: grupo,
-			subgrupoId: subgrupo
+			subgrupoId: subgrupo,
+			tamanhoId: tamanho,
+			codigoFabricante
 		}, {
 			filterAlgorithm: function(row, filters) {
-				const nomeLinha = (row.nome || "").toString().toLowerCase();
+				const descricaoLinha = (row.descricao || "").toString().toLowerCase();
 				const marcaLinha = (row.marcaId || "").toString();
-				const categoriaLinha = (row.categoriaId || "").toString();
 				const grupoLinha = (row.grupoId || "").toString();
 				const subgrupoLinha = (row.subgrupoId || "").toString();
+				const tamanhoLinha = (row.tamanhoId || "").toString();
+				const codigoFabricanteLinha = (row.codigoFabricante || "").toString().toLowerCase();
 
-				const atendeNome = !filters.nome || nomeLinha.includes(filters.nome);
+				const atendeDescricao = !filters.descricao || descricaoLinha.includes(filters.descricao);
 				const atendeMarca = !filters.marcaId || marcaLinha === filters.marcaId;
-				const atendeCategoria = !filters.categoriaId || categoriaLinha === filters.categoriaId;
 				const atendeGrupo = !filters.grupoId || grupoLinha === filters.grupoId;
 				const atendeSubgrupo = !filters.subgrupoId || subgrupoLinha === filters.subgrupoId;
+				const atendeTamanho = !filters.tamanhoId || tamanhoLinha === filters.tamanhoId;
+				const atendeCodigoFabricante = !filters.codigoFabricante || codigoFabricanteLinha.includes(filters.codigoFabricante);
 
-				return atendeNome && atendeMarca && atendeCategoria && atendeGrupo && atendeSubgrupo;
+				return atendeDescricao && atendeMarca && atendeGrupo && atendeSubgrupo && atendeTamanho && atendeCodigoFabricante;
 			}
 		});
 	}
 
-	[filtroNome, filtroMarca, filtroCategoria, filtroGrupo, filtroSubgrupo]
+	[filtroNome, filtroMarca, filtroGrupo, filtroSubgrupo, filtroTamanho, filtroCodigoFabricante]
 		.filter(Boolean)
 		.forEach(elemento => {
 			elemento.addEventListener("input", aplicarFiltros);
@@ -59,15 +64,26 @@ document.addEventListener("DOMContentLoaded", function() {
 
 	const custoInput = document.getElementById("custo");
 	const margemInput = document.getElementById("margem");
+	const precoInput = document.getElementById("preco");
 
 	if (custoInput) {
 		custoInput.addEventListener("input", function() {
 			aplicarMascaraMoeda(this);
+			recalcularAPartirDoCampo("custo");
 		});
 	}
 
 	if (margemInput) {
-		margemInput.addEventListener("input", calcularPreco);
+		margemInput.addEventListener("input", function() {
+			recalcularAPartirDoCampo("margem");
+		});
+	}
+
+	if (precoInput) {
+		precoInput.addEventListener("input", function() {
+			aplicarMascaraMoeda(this);
+			recalcularAPartirDoCampo("preco");
+		});
 	}
 });
 
@@ -110,12 +126,7 @@ function atualizarIcone() {
 	btnToggle.classList.toggle("bi-arrow-bar-down", recolhido);
 }
 
-window.confirmarExclusao = function(botao) {
-	const nome = botao.getAttribute("data-nome");
-	return confirm(`Deseja realmente excluir: ${nome}?`);
-};
-
-function calcularPreco() {
+function recalcularAPartirDoCampo(origem) {
 	const custoField = document.getElementById("custo");
 	const margemField = document.getElementById("margem");
 	const precoField = document.getElementById("preco");
@@ -123,13 +134,27 @@ function calcularPreco() {
 	if (!custoField || !margemField || !precoField) return;
 
 	const custo = parseMoeda(custoField.value);
-	const margem = parseFloat(margemField.value) || 0;
-	const preco = custo + (custo * margem / 100);
-	precoField.value = formatarMoeda(preco);
+	const margem = parseFloat((margemField.value || "0").replace(",", ".")) || 0;
+	const preco = parseMoeda(precoField.value);
+
+	if (origem === "margem" || origem === "custo") {
+		const novoPreco = custo + (custo * margem / 100);
+		precoField.value = formatarMoeda(novoPreco);
+		return;
+	}
+
+	if (origem === "preco") {
+		if (custo === 0) {
+			margemField.value = "0.00";
+			return;
+		}
+		const novaMargem = ((preco - custo) / custo) * 100;
+		margemField.value = Number.isFinite(novaMargem) ? novaMargem.toFixed(2) : "0.00";
+	}
 }
 
 function formatarMoeda(valor) {
-	return valor.toLocaleString("pt-BR", {
+	return Number(valor || 0).toLocaleString("pt-BR", {
 		minimumFractionDigits: 2,
 		maximumFractionDigits: 2
 	});
@@ -137,7 +162,7 @@ function formatarMoeda(valor) {
 
 function parseMoeda(valor) {
 	if (!valor) return 0;
-	return parseFloat(valor.replace(/\./g, "").replace(",", "."));
+	return parseFloat(valor.toString().replace(/\./g, "").replace(",", ".")) || 0;
 }
 
 function aplicarMascaraMoeda(input) {
@@ -145,5 +170,4 @@ function aplicarMascaraMoeda(input) {
 	if (numeros === "") numeros = "0";
 	const valor = parseInt(numeros, 10) / 100;
 	input.value = formatarMoeda(valor);
-	calcularPreco();
 }

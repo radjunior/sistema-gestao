@@ -14,7 +14,7 @@
 			<div class="row g-3">
 				<div class="col-md-6">
 					<div class="card">
-						<div class="card-body">
+						<div class="card-body" style="height: 200px">
 							<h3 class="card-title" th:text="${adminSaas ? 'Painel SaaS' : (empresaAtual != null ? empresaAtual.nomeFantasia : 'Sistema de Gestao')}"></h3>
 							<p class="card-text mb-1" th:text="${usuarioLogado != null ? 'Usuario: ' + usuarioLogado.nomeCompleto : ''}"></p>
 							<p class="card-text mb-0" th:if="${empresaAtual != null}" th:text="${'Plano: ' + empresaAtual.plano + ' | Status: ' + empresaAtual.status}"></p>
@@ -23,7 +23,7 @@
 				</div>
 				<div class="col-md-6">
 					<div class="card">
-						<div class="card-body">
+						<div class="card-body" style="height: 200px">
 							<h5 class="card-title">Proximos passos</h5>
 							<p class="card-text mb-2" th:if="${adminSaas}">Cadastre empresas, crie administradores iniciais e acompanhe o status das lojas.</p>
 							<p class="card-text mb-2" th:unless="${adminSaas}">Gerencie usuarios da sua empresa e mantenha os cadastros isolados por loja.</p>

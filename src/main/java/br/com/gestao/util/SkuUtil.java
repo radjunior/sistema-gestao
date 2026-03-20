@@ -4,18 +4,18 @@ import br.com.gestao.entity.Produto;
 
 public class SkuUtil {
 	private SkuUtil() {
-		throw new UnsupportedOperationException("Classe utilitária não pode ser instanciada.");
+		throw new UnsupportedOperationException("Classe utilitaria nao pode ser instanciada.");
 	}
 
 	public static String gerarSku(Produto produto) {
 		if (produto == null || produto.getId() == null) {
-			throw new IllegalArgumentException("Produto e ID do produto são obrigatórios para gerar SKU.");
+			throw new IllegalArgumentException("Produto e ID do produto sao obrigatorios para gerar SKU.");
 		}
 
-		String prefixoNome = normalizar(parte(produto.getNome(), 4));
-		String prefixoTamanho = normalizar(parte(produto.getTamanho(), 3));
+		String prefixoDescricao = normalizar(parte(produto.getDescricao(), 4));
+		String prefixoTamanho = normalizar(parte(produto.getTamanho() != null ? produto.getTamanho().getDescricao() : null, 3));
 
-		return "PROD" + produto.getId() + "-" + prefixoNome + "-" + prefixoTamanho;
+		return "PROD" + produto.getId() + "-" + prefixoDescricao + "-" + prefixoTamanho;
 	}
 
 	private static String parte(String valor, int max) {

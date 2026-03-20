@@ -22,117 +22,78 @@
 							<label class="form-label">ID</label>
 							<input type="text" class="form-control" name="id" th:value="${produto?.id}">
 						</div>
-						<div class="col-md-6">
-							<label class="form-label">Nome</label>
-							<input type="text" class="form-control" name="nome" th:value="${produto?.nome}">
-						</div>
 						<div class="col-md-5">
-							<label class="form-label">Código de Barras</label>
+							<label class="form-label">Descricao</label>
+							<input type="text" class="form-control" name="descricao" th:value="${produto?.descricao}">
+						</div>
+						<div class="col-md-3">
+							<label class="form-label">Codigo de Barras</label>
 							<input type="text" class="form-control" name="codigoBarra" th:value="${produto?.codigoBarra}">
 						</div>
-						<div class="col-md-12">
-							<label class="form-label">Descrição</label>
-							<textarea class="form-control" name="descricao" th:text="${produto?.descricao}"></textarea>
+						<div class="col-md-3">
+							<label class="form-label">Codigo do Fabricante</label>
+							<input type="text" class="form-control" name="codigoFabricante" th:value="${produto?.codigoFabricante}">
 						</div>
 						<div class="col-md-3">
 							<label class="form-label">Marca</label>
 							<select class="form-select" name="marca.id">
 								<option value="">Selecione</option>
-								<option th:each="m : ${marcas}"
-										th:value="${m.id}"
-										th:text="${m.nome}"
-										th:selected="${produto != null and produto.marca != null and m.id == produto.marca.id}"></option>
-							</select>
-						</div>
-						<div class="col-md-3">
-							<label class="form-label">Categoria</label>
-							<select class="form-select" name="categoria.id">
-								<option value="">Selecione</option>
-								<option th:each="c : ${categorias}"
-										th:value="${c.id}"
-										th:text="${c.nome}"
-										th:selected="${produto != null and produto.categoria != null and c.id == produto.categoria.id}"></option>
+								<option th:each="m : ${marcas}" th:value="${m.id}" th:text="${m.nome}" th:selected="${produto != null and produto.marca != null and m.id == produto.marca.id}"></option>
 							</select>
 						</div>
 						<div class="col-md-3">
 							<label class="form-label">Grupo</label>
 							<select class="form-select" name="grupo.id">
 								<option value="">Selecione</option>
-								<option th:each="g : ${grupos}"
-										th:value="${g.id}"
-										th:text="${g.nome}"
-										th:selected="${produto != null and produto.grupo != null and g.id == produto.grupo.id}"></option>
+								<option th:each="g : ${grupos}" th:value="${g.id}" th:text="${g.nome}" th:selected="${produto != null and produto.grupo != null and g.id == produto.grupo.id}"></option>
 							</select>
 						</div>
 						<div class="col-md-3">
 							<label class="form-label">Subgrupo</label>
 							<select class="form-select" name="subgrupo.id">
 								<option value="">Selecione</option>
-								<option th:each="s : ${subgrupos}"
-										th:value="${s.id}"
-										th:text="${s.nome}"
-										th:selected="${produto != null and produto.subgrupo != null and s.id == produto.subgrupo.id}"></option>
+								<option th:each="s : ${subgrupos}" th:value="${s.id}" th:text="${s.nome}" th:selected="${produto != null and produto.subgrupo != null and s.id == produto.subgrupo.id}"></option>
+							</select>
+						</div>
+						<div class="col-md-3">
+							<label class="form-label">Tamanho</label>
+							<select class="form-select" name="tamanho.id">
+								<option value="">Selecione</option>
+								<option th:each="t : ${tamanhos}" th:value="${t.id}" th:text="${t.descricao}" th:selected="${produto != null and produto.tamanho != null and t.id == produto.tamanho.id}"></option>
 							</select>
 						</div>
 						<div class="col-md-2">
 							<label class="form-label">Quantidade</label>
-							<input type="number"
-								   class="form-control"
-								   name="estoque.quantidade"
-								   min="0"
-								   th:value="${produto != null and produto.estoque != null ? produto.estoque.quantidade : 0}">
+							<input type="number" class="form-control" name="estoque.quantidade" min="0" th:value="${produto != null and produto.estoque != null ? produto.estoque.quantidade : 0}">
 						</div>
 						<div class="col-md-2">
 							<label class="form-label">Estoque Min</label>
-							<input type="number"
-								   class="form-control"
-								   name="estoque.estoqueMinimo"
-								   min="0"
-								   th:value="${produto != null and produto.estoque != null ? produto.estoque.estoqueMinimo : 0}">
-						</div>
-						<div class="col-md-2">
-							<label class="form-label">Tamanho</label>
-							<input type="text" class="form-control" name="tamanho" th:value="${produto?.tamanho}">
+							<input type="number" class="form-control" name="estoque.estoqueMinimo" min="0" th:value="${produto != null and produto.estoque != null ? produto.estoque.estoqueMinimo : 0}">
 						</div>
 						<div class="col-md-2">
 							<label class="form-label">Custo</label>
 							<div class="input-group">
-								<input type="text"
-									   class="form-control"
-									   id="custo"
-									   name="custo"
-									   inputmode="numeric"
-									   autocomplete="off"
-									   th:value="${produto?.custo}">
+								<input type="text" class="form-control" id="custo" name="custo" inputmode="numeric" autocomplete="off" th:value="${produto?.custo}">
 								<span class="input-group-text">R$</span>
 							</div>
 						</div>
 						<div class="col-md-2">
 							<label class="form-label">Margem</label>
 							<div class="input-group">
-								<input type="number"
-									   class="form-control"
-									   id="margem"
-									   name="margem"
-									   step="0.01"
-									   min="0"
-									   th:value="${produto?.margem}">
+								<input type="number" class="form-control" id="margem" name="margem" step="0.01" th:value="${produto?.margem}">
 								<span class="input-group-text">%</span>
 							</div>
 						</div>
 						<div class="col-md-2">
-							<label class="form-label">Preço</label>
+							<label class="form-label">Preco</label>
 							<div class="input-group">
-								<input type="text"
-									   class="form-control"
-									   id="preco"
-									   name="preco"
-									   inputmode="numeric"
-									   autocomplete="off"
-									   readonly
-									   th:value="${produto?.preco}">
+								<input type="text" class="form-control" id="preco" name="preco" inputmode="numeric" autocomplete="off" th:value="${produto?.preco}">
 								<span class="input-group-text">R$</span>
 							</div>
+						</div>
+						<div class="col-md-2">
+							<label class="form-label">SKU</label>
+							<input type="text" class="form-control" name="sku" th:value="${produto?.sku}">
 						</div>
 						<div class="col-md-11">
 							<label class="form-label">Ativo</label>
@@ -151,106 +112,93 @@
 				<div class="card-header">Lista de Produtos</div>
 				<div class="card-body row g-3 filtros-produto">
 					<div class="col-md-3">
+						<label class="form-label">Descricao</label>
+						<input type="text" class="form-control" id="filtro-produto">
+					</div>
+					<div class="col-md-2">
 						<label class="form-label">Marca</label>
 						<select class="form-select" id="filtro-marca">
 							<option value="">Selecione</option>
 							<option th:each="m : ${marcas}" th:value="${m.id}" th:text="${m.nome}"></option>
 						</select>
 					</div>
-					<div class="col-md-3">
-						<label class="form-label">Categoria</label>
-						<select class="form-select" id="filtro-categoria">
-							<option value="">Selecione</option>
-							<option th:each="c : ${categorias}" th:value="${c.id}" th:text="${c.nome}"></option>
-						</select>
-					</div>
-					<div class="col-md-3">
+					<div class="col-md-2">
 						<label class="form-label">Grupo</label>
 						<select class="form-select" id="filtro-grupo">
 							<option value="">Selecione</option>
 							<option th:each="g : ${grupos}" th:value="${g.id}" th:text="${g.nome}"></option>
 						</select>
 					</div>
-					<div class="col-md-3">
+					<div class="col-md-2">
 						<label class="form-label">Subgrupo</label>
 						<select class="form-select" id="filtro-subgrupo">
 							<option value="">Selecione</option>
 							<option th:each="s : ${subgrupos}" th:value="${s.id}" th:text="${s.nome}"></option>
 						</select>
 					</div>
+					<div class="col-md-1">
+						<label class="form-label">Tamanho</label>
+						<select class="form-select" id="filtro-tamanho">
+							<option value="">Todos</option>
+							<option th:each="t : ${tamanhos}" th:value="${t.id}" th:text="${t.descricao}"></option>
+						</select>
+					</div>
+					<div class="col-md-2">
+						<label class="form-label">Cod. Fabricante</label>
+						<input type="text" class="form-control" id="filtro-codigo-fabricante">
+					</div>
 
 					<div class="col-md-12">
-						<table
-						    id="tb-produto"
-						    class="table table-sm table-bordered"
-						    data-toggle="table"
-						    data-pagination="true"
-						    data-page-size="10"
-						    data-page-list="[10, 25, 50, 100, all]"
-						    data-search="true"
-						    data-search-highlight="true"
-						    data-locale="pt-BR"
-						    data-sort-name="id"
-						    data-sort-order="asc"
-						    data-pagination-h-align="left"
-						    data-pagination-detail-h-align="right"
-						    data-search-align="left">
-						
-						    <thead>
-						        <tr>
-						            <th data-field="id" data-sortable="true">Id</th>
-						            <th data-field="nome" data-sortable="true">Nome</th>
-						            <th data-field="sku" data-sortable="true">SKU</th>
-						            <th data-field="codigoBarra" data-sortable="true">Cód. Barras</th>
-						            <th data-field="tamanho" data-sortable="true">Tamanho</th>
-						            <th data-field="preco" data-sortable="true">Preço</th>
-						            <th data-field="quantidade" data-sortable="true">Qtd.</th>
-						            <th data-field="ativo" data-sortable="true">Ativo</th>
-						            <th data-field="editar" data-sortable="false" class="text-end">Editar</th>
-						            <th data-field="excluir" data-sortable="false" class="text-end">Excluir</th>
-						
-						            <!-- campos ocultos para filtro -->
-						            <th data-field="marcaId" data-visible="false">Marca</th>
-						            <th data-field="categoriaId" data-visible="false">Categoria</th>
-						            <th data-field="grupoId" data-visible="false">Grupo</th>
-						            <th data-field="subgrupoId" data-visible="false">Subgrupo</th>
-						        </tr>
-						    </thead>
-						
-						    <tbody>
-						        <tr th:each="p : ${produtos}">
-						            <td th:text="${p.id}"></td>
-						            <td th:text="${p.nome}"></td>
-						            <td th:text="${p.sku}"></td>
-						            <td th:text="${p.codigoBarra}"></td>
-						            <td th:text="${p.tamanho}"></td>
-						            <td th:text="${#numbers.formatDecimal(p.preco, 1, 'POINT', 2, 'COMMA')}"></td>
-						            <td th:text="${p.estoque != null ? p.estoque.quantidade : 0}"></td>
-						            <td th:text="${p.ativo ? 'Sim' : 'Não'}"></td>
-						            <td class="text-end">
-						                <a th:href="@{/cadastro/produto(id=${p.id})}" class="btn btn-primary btn-sm">
-						                    <i class="bi bi-pencil-square"></i>
-						                </a>
-						            </td>
-						            <td class="text-end">
-						                <form th:action="@{/cadastro/produto/excluir}" method="post">
-						                    <input type="hidden" name="id" th:value="${p.id}">
-						                    <button type="submit"
-						                            th:data-nome="${p.nome}"
-						                            class="btn btn-danger btn-sm"
-						                            onclick="return confirmarExclusao(this)">
-						                        <i class="bi bi-trash3-fill"></i>
-						                    </button>
-						                </form>
-						            </td>
-						
-						            <!-- campos ocultos para filtro -->
-						            <td th:text="${p.marca != null ? p.marca.id : ''}"></td>
-						            <td th:text="${p.categoria != null ? p.categoria.id : ''}"></td>
-						            <td th:text="${p.grupo != null ? p.grupo.id : ''}"></td>
-						            <td th:text="${p.subgrupo != null ? p.subgrupo.id : ''}"></td>
-						        </tr>
-						    </tbody>
+						<table id="tb-produto" class="table table-sm table-bordered" data-toggle="table" data-pagination="true" data-page-size="10" data-page-list="[10, 25, 50, 100, all]" data-search="true" data-search-highlight="true" data-locale="pt-BR" data-sort-name="id" data-sort-order="asc" data-pagination-h-align="left" data-pagination-detail-h-align="right" data-search-align="left">
+							<thead>
+								<tr>
+									<th data-field="id" data-sortable="true">Id</th>
+									<th data-field="descricao" data-sortable="true">Descricao</th>
+									<th data-field="sku" data-sortable="true">SKU</th>
+									<th data-field="codigoFabricante" data-sortable="true">Cod. Fabricante</th>
+									<th data-field="codigoBarra" data-sortable="true">Cod. Barras</th>
+									<th data-field="tamanhoDescricao" data-sortable="true">Tamanho</th>
+									<th data-field="preco" data-sortable="true">Preco</th>
+									<th data-field="quantidade" data-sortable="true">Qtd.</th>
+									<th data-field="ativo" data-sortable="true">Ativo</th>
+									<th data-field="editar" data-sortable="false" class="text-end">Editar</th>
+									<th data-field="excluir" data-sortable="false" class="text-end">Excluir</th>
+									<th data-field="marcaId" data-visible="false">Marca</th>
+									<th data-field="grupoId" data-visible="false">Grupo</th>
+									<th data-field="subgrupoId" data-visible="false">Subgrupo</th>
+									<th data-field="tamanhoId" data-visible="false">Tamanho</th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr th:each="p : ${produtos}">
+									<td th:text="${p.id}"></td>
+									<td th:text="${p.descricao}"></td>
+									<td th:text="${p.sku}"></td>
+									<td th:text="${p.codigoFabricante}"></td>
+									<td th:text="${p.codigoBarra}"></td>
+									<td th:text="${p.tamanho != null ? p.tamanho.descricao : ''}"></td>
+									<td th:text="${#numbers.formatDecimal(p.preco, 1, 'POINT', 2, 'COMMA')}"></td>
+									<td th:text="${p.estoque != null ? p.estoque.quantidade : 0}"></td>
+									<td th:text="${p.ativo ? 'Sim' : 'Nao'}"></td>
+									<td class="text-end">
+										<a th:href="@{/cadastro/produto(id=${p.id})}" class="btn btn-primary btn-sm">
+											<i class="bi bi-pencil-square"></i>
+										</a>
+									</td>
+									<td class="text-end">
+										<form th:action="@{/cadastro/produto/excluir}" method="post">
+											<input type="hidden" name="id" th:value="${p.id}">
+											<button type="submit" th:data-nome="${p.descricao}" class="btn btn-danger btn-sm" onclick="return confirmarExclusao(this)">
+												<i class="bi bi-trash3-fill"></i>
+											</button>
+										</form>
+									</td>
+									<td th:text="${p.marca != null ? p.marca.id : ''}"></td>
+									<td th:text="${p.grupo != null ? p.grupo.id : ''}"></td>
+									<td th:text="${p.subgrupo != null ? p.subgrupo.id : ''}"></td>
+									<td th:text="${p.tamanho != null ? p.tamanho.id : ''}"></td>
+								</tr>
+							</tbody>
 						</table>
 					</div>
 				</div>

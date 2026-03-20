@@ -6,17 +6,17 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
-import br.com.gestao.entity.Categoria;
 import br.com.gestao.entity.Estoque;
 import br.com.gestao.entity.Grupo;
 import br.com.gestao.entity.Marca;
 import br.com.gestao.entity.Produto;
 import br.com.gestao.entity.Subgrupo;
-import br.com.gestao.repository.CategoriaRepository;
+import br.com.gestao.entity.Tamanho;
 import br.com.gestao.repository.GrupoRepository;
 import br.com.gestao.repository.MarcaRepository;
 import br.com.gestao.repository.ProdutoRepository;
 import br.com.gestao.repository.SubgrupoRepository;
+import br.com.gestao.repository.TamanhoRepository;
 import br.com.gestao.util.SkuUtil;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
@@ -26,19 +26,19 @@ public class ProdutoService {
 
 	private final ProdutoRepository produtoRepository;
 	private final MarcaRepository marcaRepository;
-	private final CategoriaRepository categoriaRepository;
 	private final GrupoRepository grupoRepository;
 	private final SubgrupoRepository subgrupoRepository;
+	private final TamanhoRepository tamanhoRepository;
 	private final ContextoUsuarioService contextoUsuarioService;
 
 	public ProdutoService(ProdutoRepository produtoRepository, MarcaRepository marcaRepository,
-			CategoriaRepository categoriaRepository, GrupoRepository grupoRepository,
-			SubgrupoRepository subgrupoRepository, ContextoUsuarioService contextoUsuarioService) {
+			GrupoRepository grupoRepository, SubgrupoRepository subgrupoRepository, TamanhoRepository tamanhoRepository,
+			ContextoUsuarioService contextoUsuarioService) {
 		this.produtoRepository = produtoRepository;
 		this.marcaRepository = marcaRepository;
-		this.categoriaRepository = categoriaRepository;
 		this.grupoRepository = grupoRepository;
 		this.subgrupoRepository = subgrupoRepository;
+		this.tamanhoRepository = tamanhoRepository;
 		this.contextoUsuarioService = contextoUsuarioService;
 	}
 
@@ -67,23 +67,23 @@ public class ProdutoService {
 
 		Long empresaId = contextoUsuarioService.getEmpresaIdObrigatoria();
 		Produto entidade = produto.getId() == null ? new Produto() : consultarProdutoPorId(produto.getId());
+		String descricao = validarTextoObrigatorio(produto.getDescricao(), "Descricao invalida");
+
+		validarDescricaoUnica(descricao, produto.getId(), empresaId);
 
 		entidade.setEmpresa(contextoUsuarioService.getEmpresaObrigatoria());
-		entidade.setNome(validarTextoObrigatorio(produto.getNome(), "Nome invalido"));
-		entidade.setDescricao(textoOuNull(produto.getDescricao()));
+		entidade.setDescricao(descricao);
 		entidade.setCodigoBarra(textoOuNull(produto.getCodigoBarra()));
-		entidade.setTamanho(textoOuNull(produto.getTamanho()));
+		entidade.setCodigoFabricante(textoOuNull(produto.getCodigoFabricante()));
 		entidade.setAtivo(produto.isAtivo());
 		entidade.setNcm(textoOuNull(produto.getNcm()));
 		entidade.setCusto(validarValor(produto.getCusto(), "Custo nao informado."));
-		entidade.setMargem(validarValor(produto.getMargem(), "Margem nao informada."));
-		entidade.setPreco(calcularPreco(entidade.getCusto(), entidade.getMargem()));
-
 		entidade.setMarca(buscarMarcaDaEmpresa(produto.getMarca(), empresaId));
-		entidade.setCategoria(buscarCategoriaDaEmpresa(produto.getCategoria(), empresaId));
 		entidade.setGrupo(buscarGrupoDaEmpresa(produto.getGrupo(), empresaId));
 		entidade.setSubgrupo(buscarSubgrupoDaEmpresa(produto.getSubgrupo(), empresaId));
+		entidade.setTamanho(buscarTamanhoDaEmpresa(produto.getTamanho(), empresaId));
 
+		definirPrecoEMargem(entidade, produto.getPreco(), produto.getMargem());
 		validarRelacionamentos(entidade);
 		validarDadosComerciais(entidade);
 		configurarEstoque(entidade, produto.getEstoque());
@@ -103,12 +103,22 @@ public class ProdutoService {
 		}
 	}
 
+	private void definirPrecoEMargem(Produto entidade, BigDecimal precoInformado, BigDecimal margemInformada) throws Exception {
+		BigDecimal custo = entidade.getCusto();
+		if (precoInformado != null) {
+			entidade.setPreco(precoInformado.setScale(2, RoundingMode.HALF_UP));
+			entidade.setMargem(calcularMargem(custo, precoInformado));
+			return;
+		}
+
+		BigDecimal margem = validarValor(margemInformada, "Margem nao informada.");
+		entidade.setMargem(margem.setScale(2, RoundingMode.HALF_UP));
+		entidade.setPreco(calcularPreco(custo, margem));
+	}
+
 	private void validarRelacionamentos(Produto produto) throws Exception {
 		if (produto.getMarca() == null || produto.getMarca().getId() == null) {
 			throw new Exception("Marca invalida");
-		}
-		if (produto.getCategoria() == null || produto.getCategoria().getId() == null) {
-			throw new Exception("Categoria invalida");
 		}
 		if (produto.getGrupo() == null || produto.getGrupo().getId() == null) {
 			throw new Exception("Grupo invalido");
@@ -128,11 +138,14 @@ public class ProdutoService {
 		if (produto.getMargem().compareTo(BigDecimal.ZERO) < 0) {
 			throw new Exception("Margem nao pode ser negativa.");
 		}
-		if (produto.getTamanho() != null && produto.getTamanho().length() > 20) {
-			throw new Exception("Tamanho deve ter no maximo 20 caracteres.");
+		if (produto.getPreco().compareTo(BigDecimal.ZERO) < 0) {
+			throw new Exception("Preco nao pode ser negativo.");
 		}
 		if (produto.getCodigoBarra() != null && produto.getCodigoBarra().length() > 60) {
 			throw new Exception("Codigo de barras deve ter no maximo 60 caracteres.");
+		}
+		if (produto.getCodigoFabricante() != null && produto.getCodigoFabricante().length() > 60) {
+			throw new Exception("Codigo do fabricante deve ter no maximo 60 caracteres.");
 		}
 		if (produto.getSku() != null && produto.getSku().length() > 60) {
 			throw new Exception("SKU deve ter no maximo 60 caracteres.");
@@ -180,20 +193,25 @@ public class ProdutoService {
 		}
 	}
 
+	private void validarDescricaoUnica(String descricao, Long id, Long empresaId) throws Exception {
+		if (id == null) {
+			if (produtoRepository.existsByDescricaoIgnoreCaseAndEmpresaId(descricao, empresaId)) {
+				throw new Exception("Ja existe um produto com a descricao informada.");
+			}
+			return;
+		}
+
+		if (produtoRepository.existsByDescricaoIgnoreCaseAndEmpresaIdAndIdNot(descricao, empresaId, id)) {
+			throw new Exception("Ja existe outro produto com a descricao informada.");
+		}
+	}
+
 	private Marca buscarMarcaDaEmpresa(Marca marca, Long empresaId) {
 		if (marca == null || marca.getId() == null) {
 			return null;
 		}
 		return marcaRepository.findByIdAndEmpresaId(marca.getId(), empresaId)
 				.orElseThrow(() -> new EntityNotFoundException("Marca nao encontrada."));
-	}
-
-	private Categoria buscarCategoriaDaEmpresa(Categoria categoria, Long empresaId) {
-		if (categoria == null || categoria.getId() == null) {
-			return null;
-		}
-		return categoriaRepository.findByIdAndEmpresaId(categoria.getId(), empresaId)
-				.orElseThrow(() -> new EntityNotFoundException("Categoria nao encontrada."));
 	}
 
 	private Grupo buscarGrupoDaEmpresa(Grupo grupo, Long empresaId) {
@@ -212,9 +230,28 @@ public class ProdutoService {
 				.orElseThrow(() -> new EntityNotFoundException("Subgrupo nao encontrado."));
 	}
 
+	private Tamanho buscarTamanhoDaEmpresa(Tamanho tamanho, Long empresaId) {
+		if (tamanho == null || tamanho.getId() == null) {
+			return null;
+		}
+		return tamanhoRepository.findByIdAndEmpresaId(tamanho.getId(), empresaId)
+				.orElseThrow(() -> new EntityNotFoundException("Tamanho nao encontrado."));
+	}
+
 	private BigDecimal calcularPreco(BigDecimal custo, BigDecimal margem) {
 		return custo.add(custo.multiply(margem).divide(new BigDecimal("100"), 2, RoundingMode.HALF_UP)).setScale(2,
 				RoundingMode.HALF_UP);
+	}
+
+	private BigDecimal calcularMargem(BigDecimal custo, BigDecimal preco) throws Exception {
+		if (custo.compareTo(BigDecimal.ZERO) == 0) {
+			if (preco.compareTo(BigDecimal.ZERO) > 0) {
+				throw new Exception("Nao e possivel informar preco maior que zero com custo zerado.");
+			}
+			return BigDecimal.ZERO.setScale(2, RoundingMode.HALF_UP);
+		}
+
+		return preco.subtract(custo).multiply(new BigDecimal("100")).divide(custo, 2, RoundingMode.HALF_UP);
 	}
 
 	public void excluirProduto(Produto produto) {
@@ -222,7 +259,7 @@ public class ProdutoService {
 	}
 
 	public List<Produto> consultarProduto() {
-		return produtoRepository.findAllByEmpresaIdOrderByNomeAsc(contextoUsuarioService.getEmpresaIdObrigatoria());
+		return produtoRepository.findAllByEmpresaIdOrderByDescricaoAsc(contextoUsuarioService.getEmpresaIdObrigatoria());
 	}
 
 	private String validarTextoObrigatorio(String valor, String mensagem) throws Exception {

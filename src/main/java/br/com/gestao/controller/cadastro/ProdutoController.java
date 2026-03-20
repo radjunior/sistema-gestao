@@ -10,10 +10,10 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import br.com.gestao.controller.DefaultController;
 import br.com.gestao.entity.Produto;
-import br.com.gestao.service.CategoriaService;
 import br.com.gestao.service.GrupoService;
 import br.com.gestao.service.MarcaService;
 import br.com.gestao.service.ProdutoService;
+import br.com.gestao.service.TamanhoService;
 
 @Controller
 @RequestMapping("/cadastro")
@@ -23,15 +23,15 @@ public class ProdutoController extends DefaultController {
 	private static final String REDIRECT = "redirect:/cadastro/produto";
 	private final ProdutoService produtoService;
 	private final MarcaService marcaService;
-	private final CategoriaService categoriaService;
 	private final GrupoService grupoService;
+	private final TamanhoService tamanhoService;
 
-	public ProdutoController(ProdutoService produtoService, MarcaService marcaService,
-			CategoriaService categoriaService, GrupoService grupoService) {
+	public ProdutoController(ProdutoService produtoService, MarcaService marcaService, GrupoService grupoService,
+			TamanhoService tamanhoService) {
 		this.produtoService = produtoService;
 		this.marcaService = marcaService;
-		this.categoriaService = categoriaService;
 		this.grupoService = grupoService;
+		this.tamanhoService = tamanhoService;
 	}
 
 	@GetMapping("/produto")
@@ -50,17 +50,18 @@ public class ProdutoController extends DefaultController {
 	}
 
 	@PostMapping("/produto")
-	public String salvar(Model model, RedirectAttributes redirectAttributes, Produto produto) {
+	public String salvar(Model m, RedirectAttributes ra, Produto p) {
 		try {
-			produtoService.salvarProduto(produto);
-			String msg = (produto.getId() == null) ? "Produto cadastrado com sucesso!"
+			produtoService.salvarProduto(p);
+			String msg = (p.getId() == null) ? "Produto cadastrado com sucesso!"
 					: "Produto atualizado com sucesso!";
-			showSucesso(redirectAttributes, msg);
+			showSucesso(ra, msg);
 			return REDIRECT;
 		} catch (Exception e) {
-			showError(model, e.getMessage());
-			carregarPagina(model);
-			model.addAttribute("produto", produto);
+			e.printStackTrace();
+			showError(m, e.getMessage());
+			carregarPagina(m);
+			m.addAttribute("produto", p);
 			return PAGINA;
 		}
 	}
@@ -98,8 +99,8 @@ public class ProdutoController extends DefaultController {
 	private void carregarPagina(Model model) {
 		model.addAttribute("produtos", produtoService.consultarProduto());
 		model.addAttribute("marcas", marcaService.consultar());
-		model.addAttribute("categorias", categoriaService.consultar());
 		model.addAttribute("grupos", grupoService.consultar());
 		model.addAttribute("subgrupos", grupoService.consultarSubgrupos());
+		model.addAttribute("tamanhos", tamanhoService.consultar());
 	}
 }
