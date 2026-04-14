@@ -1,0 +1,121 @@
+<html lang="pt-br"
+	  xmlns:th="http://www.thymeleaf.org"
+	  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	  layout:decorate="~{template}">
+
+<head>
+	<title>Cliente</title>
+	<link rel="stylesheet" th:href="@{/css/cliente.css}" type="text/css">
+</head>
+
+<body>
+	<div layout:fragment="conteudo">
+		<div class="container">
+		    <div class="card mt-3">
+		        <div class="card-header">Cadastro de Cliente</div>
+		        <form th:action="@{/cadastro/cliente}" method="POST">
+			        <div class="card-body row g-3">
+			            <div class="col-md-1">
+			                <label class="form-label">ID</label>
+			                <input type="text" class="form-control" name="id" th:value="${cliente?.id}" readonly>
+			            </div>
+			            <div class="col-md-5">
+			                <label class="form-label">Nome</label>
+			                <input type="text" class="form-control" name="nome" th:value="${cliente?.nome}" required>
+			            </div>
+			            <div class="col-md-3">
+			                <label class="form-label">CPF</label>
+			                <input type="text" class="form-control" name="cpf" th:value="${cliente?.cpf}" maxlength="14">
+			            </div>
+			            <div class="col-md-3">
+			                <label class="form-label">Telefone</label>
+			                <input type="text" class="form-control" name="telefone" th:value="${cliente?.telefone}" maxlength="20">
+			            </div>
+			            <div class="col-md-4">
+			                <label class="form-label">Email</label>
+			                <input type="email" class="form-control" name="email" th:value="${cliente?.email}" maxlength="150">
+			            </div>
+			            <div class="col-md-5">
+			                <label class="form-label">Endereco</label>
+			                <input type="text" class="form-control" name="endereco" th:value="${cliente?.endereco}" maxlength="255">
+			            </div>
+			            <div class="col-md-3">
+			                <label class="form-label">Ativo</label>
+			                <select class="form-select" name="ativo">
+			                    <option value="true" th:selected="${cliente?.ativo == null or cliente?.ativo}">Sim</option>
+			                    <option value="false" th:selected="${cliente?.ativo != null and !cliente?.ativo}">Nao</option>
+			                </select>
+			            </div>
+			            <div class="col-md-11">
+			                <label class="form-label">Observacao</label>
+			                <textarea class="form-control" name="observacao" rows="2" maxlength="500" th:text="${cliente?.observacao}"></textarea>
+			            </div>
+			            <div class="col-md-1 d-flex align-items-end">
+					        <button type="submit" class="btn btn-success">Salvar</button>
+					    </div>
+		        	</div>
+		        </form>
+		    </div>
+		    <div class="card mt-3">
+		        <div class="card-header">Lista de Clientes</div>
+		        <div class="card-body row g-3">
+		        	<div class="col-md-12">
+		        		<label class="form-label">Buscar por nome</label>
+		                <input type="text" class="form-control" id="filtro-nome">
+		        	</div>
+		            <div class="col-md-12">
+						<table class="table" id="tb-cliente">
+							<colgroup>
+								<col style="width: 60px;">
+								<col style="width: auto;">
+								<col style="width: 130px;">
+								<col style="width: 150px;">
+								<col style="width: 80px;">
+								<col style="width: 10px;">
+								<col style="width: 10px;">
+							</colgroup>
+							<thead>
+								<tr>
+									<th>Id</th>
+									<th>Nome</th>
+									<th>CPF</th>
+									<th>Telefone</th>
+									<th>Ativo</th>
+									<th></th>
+									<th></th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr th:each="c : ${clientes}">
+									<td th:text="${c.id}"></td>
+									<td th:text="${c.nome}"></td>
+									<td th:text="${c.cpf}"></td>
+									<td th:text="${c.telefone}"></td>
+									<td>
+										<span th:if="${c.ativo}" class="badge bg-success">Sim</span>
+										<span th:unless="${c.ativo}" class="badge bg-danger">Nao</span>
+									</td>
+									<td>
+										<a th:href="@{/cadastro/cliente(id=${c.id})}" class="btn btn-primary">
+											<i class="bi bi-pencil-square"></i>
+										</a>
+									</td>
+									<td>
+										<form th:action="@{/cadastro/cliente/excluir}" method="post">
+											<input type="hidden" name="id" th:value="${c.id}">
+											<button type="submit" th:data-nome="${c.nome}" class="btn btn-danger" onclick="return confirmarExclusao(this)">
+												<i class="bi bi-trash3-fill"></i>
+											</button>
+										</form>
+									</td>
+								</tr>
+							</tbody>
+						</table>
+		            </div>
+		        </div>
+		    </div>
+		</div>
+		<script type="module" th:src="@{/js/cliente.js}"></script>
+	</div>
+</body>
+</html>
