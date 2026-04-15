@@ -22,6 +22,7 @@ public class SecurityConfig {
 			auth.requestMatchers("/admin/**").hasAuthority("ADMIN_SAAS");
 			auth.requestMatchers("/empresa/usuarios/**").hasAuthority("ADMIN_EMPRESA");
 			auth.requestMatchers("/cadastro/**").hasAnyAuthority("ADMIN_EMPRESA", "GERENTE", "OPERADOR");
+			auth.requestMatchers("/venda/**").hasAnyAuthority("ADMIN_EMPRESA", "GERENTE", "OPERADOR");
 			auth.anyRequest().authenticated();
 		}).formLogin(login -> {
 			login.loginPage("/login").defaultSuccessUrl("/home").permitAll();
