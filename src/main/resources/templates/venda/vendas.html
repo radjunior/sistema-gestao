@@ -1,0 +1,144 @@
+<html lang="pt-br"
+	  xmlns:th="http://www.thymeleaf.org"
+	  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	  layout:decorate="~{template}">
+
+<head>
+	<title>Vendas</title>
+	<link rel="stylesheet" th:href="@{/css/vendas.css}" type="text/css">
+</head>
+
+<body>
+	<div layout:fragment="conteudo">
+		<div class="container-fluid">
+
+			<!-- Detalhe da Venda (modal inline) -->
+			<div th:if="${vendaDetalhe != null}" class="card mt-3 border-info">
+				<div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
+					<span><i class="bi bi-receipt"></i> Detalhes da Venda #<span th:text="${vendaDetalhe.id}"></span></span>
+					<a th:href="@{/venda/vendas}" class="btn btn-sm btn-outline-light"><i class="bi bi-x"></i> Fechar</a>
+				</div>
+				<div class="card-body row">
+					<div class="col-md-8">
+						<table class="table table-sm">
+							<thead>
+								<tr>
+									<th>Produto</th>
+									<th class="text-center">Qtd</th>
+									<th class="text-end">Preco Unit.</th>
+									<th class="text-end">Desconto</th>
+									<th class="text-end">Subtotal</th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr th:each="item : ${vendaDetalhe.itens}">
+									<td th:text="${item.produto.descricao}"></td>
+									<td class="text-center" th:text="${item.quantidade}"></td>
+									<td class="text-end" th:text="${'R$ ' + #numbers.formatDecimal(item.precoUnitario, 1, 'POINT', 2, 'COMMA')}"></td>
+									<td class="text-end" th:text="${'R$ ' + #numbers.formatDecimal(item.desconto, 1, 'POINT', 2, 'COMMA')}"></td>
+									<td class="text-end fw-bold" th:text="${'R$ ' + #numbers.formatDecimal(item.subtotal, 1, 'POINT', 2, 'COMMA')}"></td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+					<div class="col-md-4">
+						<div class="card">
+							<div class="card-body">
+								<p><strong>Cliente:</strong> <span th:text="${vendaDetalhe.cliente != null ? vendaDetalhe.cliente.nome : 'Consumidor final'}"></span></p>
+								<p><strong>Data:</strong> <span th:text="${#temporals.format(vendaDetalhe.dataVenda, 'dd/MM/yyyy HH:mm')}"></span></p>
+								<p><strong>Subtotal:</strong> <span th:text="${'R$ ' + #numbers.formatDecimal(vendaDetalhe.subtotal, 1, 'POINT', 2, 'COMMA')}"></span></p>
+								<p><strong>Desconto:</strong> <span class="text-danger" th:text="${'R$ ' + #numbers.formatDecimal(vendaDetalhe.desconto, 1, 'POINT', 2, 'COMMA')}"></span></p>
+								<p class="fs-5"><strong>Total:</strong> <span class="text-success" th:text="${'R$ ' + #numbers.formatDecimal(vendaDetalhe.valorTotal, 1, 'POINT', 2, 'COMMA')}"></span></p>
+								<hr>
+								<p class="fw-bold">Pagamentos:</p>
+								<div th:each="pag : ${vendaDetalhe.pagamentos}" class="d-flex justify-content-between">
+									<span th:text="${pag.formaPagamento.descricao}"></span>
+									<span th:text="${'R$ ' + #numbers.formatDecimal(pag.valor, 1, 'POINT', 2, 'COMMA')}"></span>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<!-- Lista de Vendas -->
+			<div class="card mt-3">
+				<div class="card-header d-flex justify-content-between align-items-center">
+					<span><i class="bi bi-list-ul"></i> Historico de Vendas</span>
+					<a th:href="@{/venda/pdv}" class="btn btn-success btn-sm"><i class="bi bi-bag-plus"></i> Nova Venda</a>
+				</div>
+				<div class="card-body row g-3">
+					<div class="col-md-12">
+						<label class="form-label">Buscar por cliente</label>
+						<input type="text" class="form-control" id="filtro-cliente">
+					</div>
+					<div class="col-md-12">
+						<table class="table" id="tb-vendas">
+							<colgroup>
+								<col style="width: 70px;">
+								<col style="width: 160px;">
+								<col style="width: auto;">
+								<col style="width: 100px;">
+								<col style="width: 120px;">
+								<col style="width: 120px;">
+								<col style="width: 100px;">
+								<col style="width: 10px;">
+								<col style="width: 10px;">
+								<col style="width: 10px;">
+							</colgroup>
+							<thead>
+								<tr>
+									<th>#</th>
+									<th>Data</th>
+									<th>Cliente</th>
+									<th>Itens</th>
+									<th class="text-end">Total</th>
+									<th class="text-end">Pago</th>
+									<th>Status</th>
+									<th></th>
+									<th></th>
+									<th></th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr th:each="v : ${vendas}">
+									<td th:text="${v.id}"></td>
+									<td th:text="${#temporals.format(v.dataVenda, 'dd/MM/yyyy HH:mm')}"></td>
+									<td th:text="${v.cliente != null ? v.cliente.nome : 'Consumidor final'}"></td>
+									<td th:text="${v.itens.size()}"></td>
+									<td class="text-end fw-bold" th:text="${'R$ ' + #numbers.formatDecimal(v.valorTotal, 1, 'POINT', 2, 'COMMA')}"></td>
+									<td class="text-end" th:text="${'R$ ' + #numbers.formatDecimal(v.totalPago, 1, 'POINT', 2, 'COMMA')}"></td>
+									<td>
+										<span class="badge"
+											  th:classappend="${v.status.name() == 'ABERTA' ? 'bg-primary' : (v.status.name() == 'FINALIZADA' ? 'bg-success' : 'bg-danger')}"
+											  th:text="${v.status.descricao}"></span>
+									</td>
+									<td>
+										<a th:href="@{/venda/vendas/detalhe(id=${v.id})}" class="btn btn-info btn-sm">
+											<i class="bi bi-eye"></i>
+										</a>
+									</td>
+									<td>
+										<a th:if="${v.status.name() == 'ABERTA'}" th:href="@{/venda/pdv/{id}(id=${v.id})}" class="btn btn-primary btn-sm">
+											<i class="bi bi-pencil-square"></i>
+										</a>
+									</td>
+									<td>
+										<a th:if="${v.status.name() != 'CANCELADA'}"
+										   th:href="@{/venda/vendas/cancelar(id=${v.id})}"
+										   class="btn btn-danger btn-sm"
+										   onclick="return confirm('Cancelar esta venda?')">
+											<i class="bi bi-x-circle"></i>
+										</a>
+									</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+				</div>
+			</div>
+		</div>
+		<script type="module" th:src="@{/js/vendas.js}"></script>
+	</div>
+</body>
+</html>
