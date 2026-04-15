@@ -1,0 +1,239 @@
+<html lang="pt-br"
+	  xmlns:th="http://www.thymeleaf.org"
+	  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	  layout:decorate="~{template}">
+
+<head>
+	<title>PDV</title>
+	<link rel="stylesheet" th:href="@{/css/pdv.css}" type="text/css">
+</head>
+
+<body>
+	<div layout:fragment="conteudo">
+		<div class="container-fluid">
+
+			<!-- Se nao tem venda aberta, mostra tela para abrir -->
+			<div th:if="${venda == null}" class="card mt-3">
+				<div class="card-header"><i class="bi bi-cart-plus"></i> Nova Venda</div>
+				<form th:action="@{/venda/pdv/abrir}" method="POST">
+					<div class="card-body row g-3">
+						<div class="col-md-4">
+							<label class="form-label">Cliente (opcional)</label>
+							<select class="form-select" name="clienteId">
+								<option value="">Consumidor final</option>
+								<option th:each="c : ${clientes}" th:value="${c.id}" th:text="${c.nome}"></option>
+							</select>
+						</div>
+						<div class="col-md-2 d-flex align-items-end">
+							<button type="submit" class="btn btn-success"><i class="bi bi-bag-plus"></i> Abrir Venda</button>
+						</div>
+					</div>
+				</form>
+			</div>
+
+			<!-- Se tem venda aberta, mostra o PDV -->
+			<div th:if="${venda != null}">
+
+				<!-- Cabecalho da Venda -->
+				<div class="card mt-3">
+					<div class="card-header d-flex justify-content-between align-items-center">
+						<span>
+							<i class="bi bi-bag-fill"></i> Venda #<span th:text="${venda.id}"></span>
+							<span class="badge ms-2"
+								  th:classappend="${venda.status.name() == 'ABERTA' ? 'bg-primary' : (venda.status.name() == 'FINALIZADA' ? 'bg-success' : 'bg-danger')}"
+								  th:text="${venda.status.descricao}"></span>
+							<span class="ms-2 text-muted small" th:if="${venda.cliente != null}" th:text="'Cliente: ' + ${venda.cliente.nome}"></span>
+						</span>
+						<div th:if="${venda.status.name() == 'ABERTA'}">
+							<form th:action="@{/venda/pdv/{id}/cancelar(id=${venda.id})}" method="POST" class="d-inline">
+								<button type="submit" class="btn btn-outline-danger btn-sm" onclick="return confirm('Cancelar esta venda?')">
+									<i class="bi bi-x-circle"></i> Cancelar Venda
+								</button>
+							</form>
+						</div>
+					</div>
+				</div>
+
+				<div class="row mt-3">
+					<!-- Coluna esquerda: Itens -->
+					<div class="col-md-8">
+						<!-- Adicionar Item -->
+						<div class="card" th:if="${venda.status.name() == 'ABERTA'}">
+							<div class="card-header"><i class="bi bi-plus-circle"></i> Adicionar Item</div>
+							<form th:action="@{/venda/pdv/{id}/adicionar-item(id=${venda.id})}" method="POST">
+								<div class="card-body row g-3">
+									<div class="col-md-5">
+										<label class="form-label">Produto</label>
+										<select class="form-select" name="produtoId" id="select-produto" required>
+											<option value="">Selecione</option>
+											<option th:each="p : ${produtos}" th:if="${p.ativo}"
+													th:value="${p.id}"
+													th:text="${p.descricao + ' | R$ ' + #numbers.formatDecimal(p.preco, 1, 'POINT', 2, 'COMMA') + ' | Estq: ' + (p.estoque != null ? p.estoque.quantidade : 0)}"
+													th:data-preco="${p.preco}">
+											</option>
+										</select>
+									</div>
+									<div class="col-md-2">
+										<label class="form-label">Qtd</label>
+										<input type="number" class="form-control" name="quantidade" value="1" min="1" required>
+									</div>
+									<div class="col-md-3">
+										<label class="form-label">Desconto Item (R$)</label>
+										<input type="number" class="form-control" name="desconto" value="0" min="0" step="0.01">
+									</div>
+									<div class="col-md-2 d-flex align-items-end">
+										<button type="submit" class="btn btn-primary w-100"><i class="bi bi-plus"></i> Adicionar</button>
+									</div>
+								</div>
+							</form>
+						</div>
+
+						<!-- Lista de Itens -->
+						<div class="card mt-3">
+							<div class="card-header"><i class="bi bi-list-ul"></i> Itens da Venda</div>
+							<div class="card-body">
+								<div th:if="${venda.itens.isEmpty()}" class="text-muted text-center py-3">
+									Nenhum item adicionado ainda.
+								</div>
+								<table class="table table-sm" th:unless="${venda.itens.isEmpty()}">
+									<thead>
+										<tr>
+											<th>Produto</th>
+											<th class="text-center">Qtd</th>
+											<th class="text-end">Preco Unit.</th>
+											<th class="text-end">Desconto</th>
+											<th class="text-end">Subtotal</th>
+											<th th:if="${venda.status.name() == 'ABERTA'}"></th>
+										</tr>
+									</thead>
+									<tbody>
+										<tr th:each="item : ${venda.itens}">
+											<td th:text="${item.produto.descricao}"></td>
+											<td class="text-center" th:text="${item.quantidade}"></td>
+											<td class="text-end" th:text="${'R$ ' + #numbers.formatDecimal(item.precoUnitario, 1, 'POINT', 2, 'COMMA')}"></td>
+											<td class="text-end" th:text="${'R$ ' + #numbers.formatDecimal(item.desconto, 1, 'POINT', 2, 'COMMA')}"></td>
+											<td class="text-end fw-bold" th:text="${'R$ ' + #numbers.formatDecimal(item.subtotal, 1, 'POINT', 2, 'COMMA')}"></td>
+											<td class="text-end" th:if="${venda.status.name() == 'ABERTA'}">
+												<form th:action="@{/venda/pdv/{id}/remover-item(id=${venda.id})}" method="POST" class="d-inline">
+													<input type="hidden" name="itemId" th:value="${item.id}">
+													<button type="submit" class="btn btn-outline-danger btn-sm" onclick="return confirm('Remover este item?')">
+														<i class="bi bi-trash3"></i>
+													</button>
+												</form>
+											</td>
+										</tr>
+									</tbody>
+								</table>
+							</div>
+						</div>
+					</div>
+
+					<!-- Coluna direita: Totais e Pagamento -->
+					<div class="col-md-4">
+						<!-- Resumo -->
+						<div class="card">
+							<div class="card-header"><i class="bi bi-calculator"></i> Resumo</div>
+							<div class="card-body">
+								<div class="d-flex justify-content-between mb-2">
+									<span>Subtotal:</span>
+									<span th:text="${'R$ ' + #numbers.formatDecimal(venda.subtotal, 1, 'POINT', 2, 'COMMA')}"></span>
+								</div>
+								<div class="d-flex justify-content-between mb-2 text-danger">
+									<span>Desconto:</span>
+									<span th:text="${'- R$ ' + #numbers.formatDecimal(venda.desconto, 1, 'POINT', 2, 'COMMA')}"></span>
+								</div>
+								<hr>
+								<div class="d-flex justify-content-between mb-2 fs-5 fw-bold">
+									<span>Total:</span>
+									<span class="text-success" th:text="${'R$ ' + #numbers.formatDecimal(venda.valorTotal, 1, 'POINT', 2, 'COMMA')}"></span>
+								</div>
+								<div class="d-flex justify-content-between mb-2">
+									<span>Pago:</span>
+									<span th:text="${'R$ ' + #numbers.formatDecimal(venda.totalPago, 1, 'POINT', 2, 'COMMA')}"></span>
+								</div>
+								<div class="d-flex justify-content-between fw-bold"
+									 th:with="restante=${venda.valorTotal.subtract(venda.totalPago)}">
+									<span>Restante:</span>
+									<span th:classappend="${restante.compareTo(T(java.math.BigDecimal).ZERO) > 0 ? 'text-danger' : 'text-success'}"
+										  th:text="${'R$ ' + #numbers.formatDecimal(restante, 1, 'POINT', 2, 'COMMA')}"></span>
+								</div>
+							</div>
+						</div>
+
+						<!-- Desconto da Venda -->
+						<div class="card mt-3" th:if="${venda.status.name() == 'ABERTA'}">
+							<div class="card-header"><i class="bi bi-tag"></i> Desconto Geral</div>
+							<form th:action="@{/venda/pdv/{id}/desconto(id=${venda.id})}" method="POST">
+								<div class="card-body row g-2">
+									<div class="col-8">
+										<input type="number" class="form-control" name="desconto" step="0.01" min="0"
+											   th:value="${#numbers.formatDecimal(venda.desconto, 1, 'POINT', 2, 'POINT')}" placeholder="0.00">
+									</div>
+									<div class="col-4">
+										<button type="submit" class="btn btn-warning w-100"><i class="bi bi-check"></i> Aplicar</button>
+									</div>
+								</div>
+							</form>
+						</div>
+
+						<!-- Pagamento -->
+						<div class="card mt-3" th:if="${venda.status.name() == 'ABERTA'}">
+							<div class="card-header"><i class="bi bi-credit-card"></i> Pagamento</div>
+							<form th:action="@{/venda/pdv/{id}/adicionar-pagamento(id=${venda.id})}" method="POST">
+								<div class="card-body row g-2">
+									<div class="col-12">
+										<label class="form-label">Forma</label>
+										<select class="form-select" name="formaPagamento" required>
+											<option th:each="fp : ${formasPagamento}" th:value="${fp.name()}" th:text="${fp.descricao}"></option>
+										</select>
+									</div>
+									<div class="col-8">
+										<label class="form-label">Valor (R$)</label>
+										<input type="number" class="form-control" name="valor" id="valor-pagamento" step="0.01" min="0.01" required
+											   th:value="${#numbers.formatDecimal(venda.valorTotal.subtract(venda.totalPago), 1, 'POINT', 2, 'POINT')}">
+									</div>
+									<div class="col-4 d-flex align-items-end">
+										<button type="submit" class="btn btn-success w-100"><i class="bi bi-plus"></i> Pagar</button>
+									</div>
+								</div>
+							</form>
+							<!-- Lista de pagamentos -->
+							<div class="card-body pt-0" th:unless="${venda.pagamentos.isEmpty()}">
+								<hr>
+								<div class="small" th:each="pag : ${venda.pagamentos}">
+									<div class="d-flex justify-content-between align-items-center mb-1">
+										<span>
+											<span th:text="${pag.formaPagamento.descricao}"></span> -
+											<span class="fw-bold" th:text="${'R$ ' + #numbers.formatDecimal(pag.valor, 1, 'POINT', 2, 'COMMA')}"></span>
+										</span>
+										<form th:action="@{/venda/pdv/{id}/remover-pagamento(id=${venda.id})}" method="POST" class="d-inline">
+											<input type="hidden" name="pagamentoId" th:value="${pag.id}">
+											<button type="submit" class="btn btn-outline-danger btn-sm py-0 px-1">
+												<i class="bi bi-x"></i>
+											</button>
+										</form>
+									</div>
+								</div>
+							</div>
+						</div>
+
+						<!-- Botao Finalizar -->
+						<div class="mt-3" th:if="${venda.status.name() == 'ABERTA'}">
+							<form th:action="@{/venda/pdv/{id}/finalizar(id=${venda.id})}" method="POST">
+								<button type="submit" class="btn btn-success btn-lg w-100"
+										onclick="return confirm('Finalizar esta venda?')"
+										th:disabled="${venda.itens.isEmpty() or venda.totalPago.compareTo(venda.valorTotal) < 0}">
+									<i class="bi bi-check-circle"></i> Finalizar Venda
+								</button>
+							</form>
+						</div>
+
+					</div>
+				</div>
+			</div>
+
+		</div>
+		<script type="module" th:src="@{/js/pdv.js}"></script>
+	</div>
+</body>
+</html>

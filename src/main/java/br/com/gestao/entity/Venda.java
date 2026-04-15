@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+import br.com.gestao.entity.enums.StatusVenda;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -67,6 +68,18 @@ public class Venda extends EntityAudit {
 
 	@Column(name = "com_juros", nullable = false)
 	private boolean comJuros = false;
+	@Enumerated(EnumType.STRING)
+	@Column(nullable = false, length = 20)
+	private StatusVenda status = StatusVenda.ABERTA;
+
+	@Column(nullable = false, precision = 15, scale = 2)
+	private BigDecimal subtotal = BigDecimal.ZERO;
+
+	@Column(nullable = false, precision = 15, scale = 2)
+	private BigDecimal desconto = BigDecimal.ZERO;
+
+	@Column(name = "valor_total", nullable = false, precision = 15, scale = 2)
+	private BigDecimal valorTotal = BigDecimal.ZERO;
 
 	@Column(length = 500)
 	private String observacao;
@@ -76,9 +89,41 @@ public class Venda extends EntityAudit {
 
 	@OneToMany(mappedBy = "venda", cascade = CascadeType.ALL, orphanRemoval = true)
 	private List<Parcela> parcelas = new ArrayList<>();
+	private List<VendaItem> itens = new ArrayList<>();
+
+	@OneToMany(mappedBy = "venda", cascade = CascadeType.ALL, orphanRemoval = true)
+	private List<VendaPagamento> pagamentos = new ArrayList<>();
 
 	public Venda() {
 	}
+
+	public void adicionarItem(VendaItem item) {
+		item.setVenda(this);
+		this.itens.add(item);
+	}
+
+	public void adicionarPagamento(VendaPagamento pagamento) {
+		pagamento.setVenda(this);
+		this.pagamentos.add(pagamento);
+	}
+
+	public void recalcularTotais() {
+		this.subtotal = itens.stream()
+				.map(VendaItem::getSubtotal)
+				.reduce(BigDecimal.ZERO, BigDecimal::add);
+		this.valorTotal = this.subtotal.subtract(this.desconto != null ? this.desconto : BigDecimal.ZERO);
+		if (this.valorTotal.compareTo(BigDecimal.ZERO) < 0) {
+			this.valorTotal = BigDecimal.ZERO;
+		}
+	}
+
+	public BigDecimal getTotalPago() {
+		return pagamentos.stream()
+				.map(VendaPagamento::getValor)
+				.reduce(BigDecimal.ZERO, BigDecimal::add);
+	}
+
+	// Getters e Setters
 
 	public Long getId() {
 		return id;
@@ -190,6 +235,28 @@ public class Venda extends EntityAudit {
 
 	public void setComJuros(boolean comJuros) {
 		this.comJuros = comJuros;
+	public BigDecimal getSubtotal() {
+		return subtotal;
+	}
+
+	public void setSubtotal(BigDecimal subtotal) {
+		this.subtotal = subtotal;
+	}
+
+	public BigDecimal getDesconto() {
+		return desconto;
+	}
+
+	public void setDesconto(BigDecimal desconto) {
+		this.desconto = desconto;
+	}
+
+	public BigDecimal getValorTotal() {
+		return valorTotal;
+	}
+
+	public void setValorTotal(BigDecimal valorTotal) {
+		this.valorTotal = valorTotal;
 	}
 
 	public String getObservacao() {
@@ -214,6 +281,26 @@ public class Venda extends EntityAudit {
 
 	public void setParcelas(List<Parcela> parcelas) {
 		this.parcelas = parcelas;
+	public List<VendaItem> getItens() {
+		return itens;
+	}
+
+	public void setItens(List<VendaItem> itens) {
+		this.itens = itens;
+	}
+
+	public List<VendaPagamento> getPagamentos() {
+		return pagamentos;
+	}
+
+	public void setPagamentos(List<VendaPagamento> pagamentos) {
+		this.pagamentos = pagamentos;
+	}
+
+	@Override
+	public String toString() {
+		return "Venda [id=" + id + ", empresa=" + (empresa != null ? empresa.getId() : null)
+				+ ", status=" + status + ", valorTotal=" + valorTotal + "]";
 	}
 
 }

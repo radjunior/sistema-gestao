@@ -1,0 +1,162 @@
+package br.com.gestao.controller.venda;
+
+import java.math.BigDecimal;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import br.com.gestao.controller.DefaultController;
+import br.com.gestao.entity.Venda;
+import br.com.gestao.entity.enums.FormaPagamento;
+import br.com.gestao.service.ClienteService;
+import br.com.gestao.service.ProdutoService;
+import br.com.gestao.service.VendaService;
+
+@Controller
+@RequestMapping("/venda/pdv")
+public class PdvController extends DefaultController {
+
+	private static final String PAGINA = "venda/pdv";
+	private static final String REDIRECT_PDV = "redirect:/venda/pdv/";
+	private final VendaService vendaService;
+	private final ProdutoService produtoService;
+	private final ClienteService clienteService;
+
+	public PdvController(VendaService vendaService, ProdutoService produtoService, ClienteService clienteService) {
+		this.vendaService = vendaService;
+		this.produtoService = produtoService;
+		this.clienteService = clienteService;
+	}
+
+	@GetMapping
+	public String novoPdv(Model model) {
+		carregarDadosPdv(model, null);
+		return PAGINA;
+	}
+
+	@GetMapping("/{id}")
+	public String abrirPdv(@PathVariable Long id, Model model) {
+		try {
+			Venda venda = vendaService.consultarPorId(id);
+			carregarDadosPdv(model, venda);
+		} catch (Exception e) {
+			showError(model, e.getMessage());
+			carregarDadosPdv(model, null);
+		}
+		return PAGINA;
+	}
+
+	@PostMapping("/abrir")
+	public String abrirVenda(RedirectAttributes redirectAttributes,
+			@RequestParam(required = false) Long clienteId) {
+		try {
+			Venda venda = vendaService.abrirVenda(clienteId);
+			showSucesso(redirectAttributes, "Venda #" + venda.getId() + " aberta!");
+			return REDIRECT_PDV + venda.getId();
+		} catch (Exception e) {
+			showError(redirectAttributes, e.getMessage());
+			return "redirect:/venda/pdv";
+		}
+	}
+
+	@PostMapping("/{vendaId}/adicionar-item")
+	public String adicionarItem(@PathVariable Long vendaId, RedirectAttributes redirectAttributes,
+			@RequestParam Long produtoId,
+			@RequestParam Integer quantidade,
+			@RequestParam(required = false) BigDecimal desconto) {
+		try {
+			vendaService.adicionarItem(vendaId, produtoId, quantidade, desconto);
+			showSucesso(redirectAttributes, "Item adicionado!");
+		} catch (Exception e) {
+			showError(redirectAttributes, e.getMessage());
+		}
+		return REDIRECT_PDV + vendaId;
+	}
+
+	@PostMapping("/{vendaId}/remover-item")
+	public String removerItem(@PathVariable Long vendaId, RedirectAttributes redirectAttributes,
+			@RequestParam Long itemId) {
+		try {
+			vendaService.removerItem(vendaId, itemId);
+			showSucesso(redirectAttributes, "Item removido!");
+		} catch (Exception e) {
+			showError(redirectAttributes, e.getMessage());
+		}
+		return REDIRECT_PDV + vendaId;
+	}
+
+	@PostMapping("/{vendaId}/desconto")
+	public String aplicarDesconto(@PathVariable Long vendaId, RedirectAttributes redirectAttributes,
+			@RequestParam BigDecimal desconto) {
+		try {
+			vendaService.aplicarDesconto(vendaId, desconto);
+			showSucesso(redirectAttributes, "Desconto aplicado!");
+		} catch (Exception e) {
+			showError(redirectAttributes, e.getMessage());
+		}
+		return REDIRECT_PDV + vendaId;
+	}
+
+	@PostMapping("/{vendaId}/adicionar-pagamento")
+	public String adicionarPagamento(@PathVariable Long vendaId, RedirectAttributes redirectAttributes,
+			@RequestParam FormaPagamento formaPagamento,
+			@RequestParam BigDecimal valor) {
+		try {
+			vendaService.adicionarPagamento(vendaId, formaPagamento, valor);
+			showSucesso(redirectAttributes, "Pagamento adicionado!");
+		} catch (Exception e) {
+			showError(redirectAttributes, e.getMessage());
+		}
+		return REDIRECT_PDV + vendaId;
+	}
+
+	@PostMapping("/{vendaId}/remover-pagamento")
+	public String removerPagamento(@PathVariable Long vendaId, RedirectAttributes redirectAttributes,
+			@RequestParam Long pagamentoId) {
+		try {
+			vendaService.removerPagamento(vendaId, pagamentoId);
+			showSucesso(redirectAttributes, "Pagamento removido!");
+		} catch (Exception e) {
+			showError(redirectAttributes, e.getMessage());
+		}
+		return REDIRECT_PDV + vendaId;
+	}
+
+	@PostMapping("/{vendaId}/finalizar")
+	public String finalizarVenda(@PathVariable Long vendaId, RedirectAttributes redirectAttributes) {
+		try {
+			vendaService.finalizarVenda(vendaId);
+			showSucesso(redirectAttributes, "Venda #" + vendaId + " finalizada com sucesso!");
+			return "redirect:/venda/vendas";
+		} catch (Exception e) {
+			showError(redirectAttributes, e.getMessage());
+			return REDIRECT_PDV + vendaId;
+		}
+	}
+
+	@PostMapping("/{vendaId}/cancelar")
+	public String cancelarVenda(@PathVariable Long vendaId, RedirectAttributes redirectAttributes) {
+		try {
+			vendaService.cancelarVenda(vendaId);
+			showSucesso(redirectAttributes, "Venda #" + vendaId + " cancelada!");
+			return "redirect:/venda/vendas";
+		} catch (Exception e) {
+			showError(redirectAttributes, e.getMessage());
+			return REDIRECT_PDV + vendaId;
+		}
+	}
+
+	private void carregarDadosPdv(Model model, Venda venda) {
+		model.addAttribute("venda", venda);
+		model.addAttribute("produtos", produtoService.consultarProduto());
+		model.addAttribute("clientes", clienteService.consultar());
+		model.addAttribute("formasPagamento", FormaPagamento.values());
+	}
+
+}

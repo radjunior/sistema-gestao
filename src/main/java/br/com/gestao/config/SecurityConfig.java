@@ -25,6 +25,7 @@ public class SecurityConfig {
 			auth.requestMatchers("/pdv/**").hasAnyAuthority("ADMIN_EMPRESA", "GERENTE", "OPERADOR");
 			auth.requestMatchers("/financeiro/configuracao/**").hasAnyAuthority("ADMIN_EMPRESA", "GERENTE");
 			auth.requestMatchers("/financeiro/**").hasAnyAuthority("ADMIN_EMPRESA", "GERENTE", "OPERADOR");
+			auth.requestMatchers("/venda/**").hasAnyAuthority("ADMIN_EMPRESA", "GERENTE", "OPERADOR");
 			auth.anyRequest().authenticated();
 		}).formLogin(login -> {
 			login.loginPage("/login").defaultSuccessUrl("/home").permitAll();
