@@ -29,8 +29,8 @@ public class Produto extends EntityAudit {
 	@Column(nullable = false, length = 150)
 	private String descricao;
 
-	@ManyToOne(fetch = FetchType.LAZY, optional = false)
-	@JoinColumn(name = "marca_id", nullable = false)
+	@ManyToOne(fetch = FetchType.LAZY, optional = true)
+	@JoinColumn(name = "marca_id", nullable = true)
 	private Marca marca;
 
 	@ManyToOne(fetch = FetchType.LAZY, optional = false)

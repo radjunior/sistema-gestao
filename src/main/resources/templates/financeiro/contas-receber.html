@@ -1,0 +1,174 @@
+<html lang="pt-br"
+	  xmlns:th="http://www.thymeleaf.org"
+	  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	  layout:decorate="~{template}">
+
+<head>
+	<title>Contas a Receber</title>
+	<link rel="stylesheet" th:href="@{/css/contas-receber.css}" type="text/css">
+</head>
+
+<body>
+	<div layout:fragment="conteudo">
+		<div class="container-fluid">
+
+			<div class="row g-3 mt-1">
+				<div class="col-md-3">
+					<div class="card kpi-card border-primary">
+						<div class="card-body">
+							<div class="kpi-label">Total a Receber</div>
+							<div class="kpi-value text-primary"
+								 th:text="${'R$ ' + #numbers.formatDecimal(indicadores.totalAReceber, 1, 'POINT', 2, 'COMMA')}"></div>
+						</div>
+					</div>
+				</div>
+				<div class="col-md-3">
+					<div class="card kpi-card border-danger">
+						<div class="card-body">
+							<div class="kpi-label">Total Vencido</div>
+							<div class="kpi-value text-danger"
+								 th:text="${'R$ ' + #numbers.formatDecimal(indicadores.totalVencido, 1, 'POINT', 2, 'COMMA')}"></div>
+						</div>
+					</div>
+				</div>
+				<div class="col-md-3">
+					<div class="card kpi-card border-success">
+						<div class="card-body">
+							<div class="kpi-label">Recebimentos do Mes</div>
+							<div class="kpi-value text-success"
+								 th:text="${'R$ ' + #numbers.formatDecimal(indicadores.recebimentosMes, 1, 'POINT', 2, 'COMMA')}"></div>
+						</div>
+					</div>
+				</div>
+				<div class="col-md-3">
+					<div class="card kpi-card border-warning">
+						<div class="card-body">
+							<div class="kpi-label">Clientes Inadimplentes</div>
+							<div class="kpi-value text-warning" th:text="${indicadores.clientesInadimplentes}"></div>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<div class="card mt-3">
+				<div class="card-header">Filtros</div>
+				<form th:action="@{/financeiro/contas-receber}" method="get" class="card-body row g-3">
+					<div class="col-md-3">
+						<label class="form-label">Status</label>
+						<select class="form-select" name="status">
+							<option value="">Todos</option>
+							<option th:each="s : ${statusDisponiveis}" th:value="${s.name()}"
+									th:text="${s.descricao}"
+									th:selected="${statusFiltro != null and statusFiltro.name() == s.name()}"></option>
+						</select>
+					</div>
+					<div class="col-md-2">
+						<label class="form-label">Vencimento de</label>
+						<input type="date" name="inicio" class="form-control" th:value="${inicioFiltro}">
+					</div>
+					<div class="col-md-2">
+						<label class="form-label">Ate</label>
+						<input type="date" name="fim" class="form-control" th:value="${fimFiltro}">
+					</div>
+					<div class="col-md-3">
+						<label class="form-label">Cliente</label>
+						<select class="form-select" name="clienteId">
+							<option value="">Todos</option>
+							<option th:each="c : ${clientes}" th:value="${c.id}" th:text="${c.nome}"
+									th:selected="${clienteIdFiltro != null and clienteIdFiltro == c.id}"></option>
+						</select>
+					</div>
+					<div class="col-md-2 d-flex align-items-end">
+						<button type="submit" class="btn btn-primary w-100"><i class="bi bi-search"></i> Filtrar</button>
+					</div>
+				</form>
+			</div>
+
+			<div class="card mt-3" th:if="${parcelasFiltradas != null}">
+				<div class="card-header">Resultado do Filtro</div>
+				<div class="card-body">
+					<table class="table table-sm">
+						<thead>
+							<tr>
+								<th>Cliente</th>
+								<th>Venda</th>
+								<th>Parcela</th>
+								<th>Vencimento</th>
+								<th>Valor Nominal</th>
+								<th>Encargos</th>
+								<th>Total Atualizado</th>
+								<th>Status</th>
+								<th></th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr th:each="p : ${parcelasFiltradas}">
+								<td th:text="${p.cliente.nome}"></td>
+								<td th:text="${'#' + p.venda.id}"></td>
+								<td th:text="${p.numeroParcela + '/' + p.totalParcelas}"></td>
+								<td th:text="${#temporals.format(p.dataVencimento, 'dd/MM/yyyy')}"></td>
+								<td th:text="${'R$ ' + #numbers.formatDecimal(p.valorNominal, 1, 'POINT', 2, 'COMMA')}"></td>
+								<td th:text="${'R$ ' + #numbers.formatDecimal(p.jurosAplicados.add(p.multaAplicada), 1, 'POINT', 2, 'COMMA')}"></td>
+								<td th:text="${'R$ ' + #numbers.formatDecimal(p.valorTotalAtualizado, 1, 'POINT', 2, 'COMMA')}"></td>
+								<td>
+									<span th:switch="${p.status.name()}">
+										<span th:case="'PAGO'" class="badge bg-success" th:text="${p.status.descricao}"></span>
+										<span th:case="'VENCIDO'" class="badge bg-danger" th:text="${p.status.descricao}"></span>
+										<span th:case="'PENDENTE'" class="badge bg-warning text-dark" th:text="${p.status.descricao}"></span>
+										<span th:case="*" class="badge bg-secondary" th:text="${p.status.descricao}"></span>
+									</span>
+								</td>
+								<td>
+									<a th:href="@{/financeiro/contas-receber/cliente/{id}(id=${p.cliente.id})}" class="btn btn-sm btn-outline-primary">
+										<i class="bi bi-eye"></i>
+									</a>
+								</td>
+							</tr>
+							<tr th:if="${#lists.isEmpty(parcelasFiltradas)}">
+								<td colspan="9" class="text-center text-muted">Nenhuma parcela encontrada com os filtros.</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+			</div>
+
+			<div class="card mt-3">
+				<div class="card-header">Clientes com Dividas Ativas</div>
+				<div class="card-body">
+					<table class="table">
+						<thead>
+							<tr>
+								<th>Cliente</th>
+								<th class="text-end">Total em Aberto</th>
+								<th class="text-center">Parcelas Vencidas</th>
+								<th>Proximo Vencimento</th>
+								<th></th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr th:each="d : ${resumoDevedores}"
+								th:classappend="${d.qtdVencidas != null and d.qtdVencidas > 0} ? 'table-danger' : ''">
+								<td th:text="${d.nomeCliente}"></td>
+								<td class="text-end" th:text="${'R$ ' + #numbers.formatDecimal(d.totalAberto, 1, 'POINT', 2, 'COMMA')}"></td>
+								<td class="text-center">
+									<span th:if="${d.qtdVencidas > 0}" class="badge bg-danger" th:text="${d.qtdVencidas}"></span>
+									<span th:unless="${d.qtdVencidas > 0}" class="badge bg-success">0</span>
+								</td>
+								<td th:text="${d.proximoVencimento != null ? #temporals.format(d.proximoVencimento, 'dd/MM/yyyy') : '-'}"></td>
+								<td>
+									<a th:href="@{/financeiro/contas-receber/cliente/{id}(id=${d.clienteId})}" class="btn btn-sm btn-primary">
+										<i class="bi bi-eye"></i> Detalhes
+									</a>
+								</td>
+							</tr>
+							<tr th:if="${#lists.isEmpty(resumoDevedores)}">
+								<td colspan="5" class="text-center text-muted">Nenhum cliente com divida ativa.</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+			</div>
+		</div>
+	</div>
+</body>
+</html>

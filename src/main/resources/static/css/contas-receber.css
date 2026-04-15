@@ -1,0 +1,26 @@
+.kpi-card {
+	border-left-width: 4px !important;
+}
+
+.kpi-label {
+	font-size: 0.85rem;
+	text-transform: uppercase;
+	color: #6c757d;
+	letter-spacing: 0.5px;
+}
+
+.kpi-value {
+	font-size: 1.75rem;
+	font-weight: 700;
+	margin-top: 0.25rem;
+}
+
+@media (max-width: 992px) {
+	.kpi-value {
+		font-size: 1.4rem;
+	}
+}
+
+.table td, .table th {
+	vertical-align: middle;
+}

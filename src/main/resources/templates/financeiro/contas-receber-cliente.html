@@ -1,0 +1,164 @@
+<html lang="pt-br"
+	  xmlns:th="http://www.thymeleaf.org"
+	  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	  layout:decorate="~{template}">
+
+<head>
+	<title>Contas a Receber - Cliente</title>
+	<link rel="stylesheet" th:href="@{/css/contas-receber.css}" type="text/css">
+</head>
+
+<body>
+	<div layout:fragment="conteudo">
+		<div class="container-fluid">
+			<div class="card mt-3">
+				<div class="card-header d-flex justify-content-between align-items-center">
+					<span>
+						<i class="bi bi-person-fill"></i>
+						<span th:text="${cliente.nome}"></span>
+					</span>
+					<div>
+						<form th:action="@{/financeiro/contas-receber/recalcular-cliente}" method="post" style="display:inline;">
+							<input type="hidden" name="clienteId" th:value="${cliente.id}">
+							<button type="submit" class="btn btn-sm btn-outline-warning">
+								<i class="bi bi-arrow-clockwise"></i> Recalcular juros do cliente
+							</button>
+						</form>
+						<a th:href="@{/financeiro/contas-receber}" class="btn btn-sm btn-secondary">
+							<i class="bi bi-arrow-left"></i> Voltar
+						</a>
+					</div>
+				</div>
+				<div class="card-body">
+					<table class="table">
+						<thead>
+							<tr>
+								<th>Venda</th>
+								<th>Parcela</th>
+								<th>Vencimento</th>
+								<th>Dias Atraso</th>
+								<th class="text-end">Valor Nominal</th>
+								<th class="text-end">Juros</th>
+								<th class="text-end">Multa</th>
+								<th class="text-end">Total</th>
+								<th>Status</th>
+								<th></th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr th:each="p : ${parcelas}"
+								th:classappend="${p.status.name() == 'PAGO'} ? 'table-success' :
+												(${p.status.name() == 'VENCIDO'} ? 'table-danger' :
+												 (${p.status.name() == 'PENDENTE'} ? 'table-warning' : ''))">
+								<td th:text="${'#' + p.venda.id}"></td>
+								<td th:text="${p.numeroParcela + '/' + p.totalParcelas}"></td>
+								<td th:text="${#temporals.format(p.dataVencimento, 'dd/MM/yyyy')}"></td>
+								<td>
+									<span th:if="${p.status.name() != 'PAGO' and p.dataVencimento.isBefore(hoje)}"
+										  class="text-danger fw-bold"
+										  th:text="${T(java.time.temporal.ChronoUnit).DAYS.between(p.dataVencimento, hoje) + ' dias'}"></span>
+									<span th:unless="${p.status.name() != 'PAGO' and p.dataVencimento.isBefore(hoje)}">-</span>
+								</td>
+								<td class="text-end" th:text="${'R$ ' + #numbers.formatDecimal(p.valorNominal, 1, 'POINT', 2, 'COMMA')}"></td>
+								<td class="text-end" th:text="${'R$ ' + #numbers.formatDecimal(p.jurosAplicados, 1, 'POINT', 2, 'COMMA')}"></td>
+								<td class="text-end" th:text="${'R$ ' + #numbers.formatDecimal(p.multaAplicada, 1, 'POINT', 2, 'COMMA')}"></td>
+								<td class="text-end fw-bold" th:text="${'R$ ' + #numbers.formatDecimal(p.valorTotalAtualizado, 1, 'POINT', 2, 'COMMA')}"></td>
+								<td>
+									<span th:switch="${p.status.name()}">
+										<span th:case="'PAGO'" class="badge bg-success" th:text="${p.status.descricao}"></span>
+										<span th:case="'VENCIDO'" class="badge bg-danger" th:text="${p.status.descricao}"></span>
+										<span th:case="'PENDENTE'" class="badge bg-warning text-dark" th:text="${p.status.descricao}"></span>
+										<span th:case="*" class="badge bg-secondary" th:text="${p.status.descricao}"></span>
+									</span>
+								</td>
+								<td class="text-nowrap">
+									<button th:if="${p.status.name() != 'PAGO' and p.status.name() != 'CANCELADO'}"
+											type="button" class="btn btn-sm btn-success btn-quitar"
+											th:attr="data-id=${p.id},
+													 data-numero=${p.numeroParcela},
+													 data-total=${p.totalParcelas},
+													 data-nominal=${p.valorNominal},
+													 data-juros=${p.jurosAplicados},
+													 data-multa=${p.multaAplicada},
+													 data-totalatualizado=${p.valorTotalAtualizado}">
+										<i class="bi bi-cash"></i> Quitar
+									</button>
+									<form th:if="${p.status.name() != 'PAGO' and p.status.name() != 'CANCELADO'}"
+										  th:action="@{/financeiro/contas-receber/recalcular-parcela}" method="post" style="display:inline;">
+										<input type="hidden" name="parcelaId" th:value="${p.id}">
+										<button type="submit" class="btn btn-sm btn-outline-warning" title="Recalcular juros">
+											<i class="bi bi-arrow-clockwise"></i>
+										</button>
+									</form>
+								</td>
+							</tr>
+							<tr th:if="${#lists.isEmpty(parcelas)}">
+								<td colspan="10" class="text-center text-muted">Nenhuma parcela para este cliente.</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+			</div>
+		</div>
+
+		<!-- Modal Quitacao -->
+		<div class="modal fade" id="modal-quitar" tabindex="-1" aria-hidden="true">
+			<div class="modal-dialog modal-dialog-centered">
+				<form th:action="@{/financeiro/contas-receber/quitar}" method="post" class="modal-content">
+					<div class="modal-header">
+						<h5 class="modal-title">Quitar Parcela <span id="mq-info"></span></h5>
+						<button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+					</div>
+					<div class="modal-body">
+						<input type="hidden" name="parcelaId" id="mq-parcela-id">
+						<div class="row g-2">
+							<div class="col-6">
+								<label class="form-label">Valor Nominal</label>
+								<input type="text" id="mq-nominal" class="form-control" readonly>
+							</div>
+							<div class="col-6">
+								<label class="form-label">Juros</label>
+								<input type="text" id="mq-juros" class="form-control" readonly>
+							</div>
+							<div class="col-6">
+								<label class="form-label">Multa</label>
+								<input type="text" id="mq-multa" class="form-control" readonly>
+							</div>
+							<div class="col-6">
+								<label class="form-label">Total a Pagar</label>
+								<input type="text" id="mq-total" class="form-control fw-bold" readonly>
+							</div>
+							<div class="col-6">
+								<label class="form-label">Valor Recebido *</label>
+								<input type="number" name="valorRecebido" id="mq-valor-recebido" class="form-control" step="0.01" min="0.01" required>
+							</div>
+							<div class="col-6">
+								<label class="form-label">Data do Pagamento *</label>
+								<input type="date" name="dataPagamento" id="mq-data" class="form-control" required th:value="${hoje}">
+							</div>
+							<div class="col-12">
+								<label class="form-label">Forma de Pagamento *</label>
+								<select name="formaPagamento" class="form-select" required>
+									<option value="">Selecione...</option>
+									<option th:each="f : ${formasPagamento}" th:if="${f.name() != 'PARCELADO'}"
+											th:value="${f.name()}" th:text="${f.descricao}"></option>
+								</select>
+							</div>
+							<div class="col-12">
+								<label class="form-label">Observacao</label>
+								<textarea name="observacao" class="form-control" rows="2" maxlength="500"></textarea>
+							</div>
+						</div>
+					</div>
+					<div class="modal-footer">
+						<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+						<button type="submit" class="btn btn-success"><i class="bi bi-check2"></i> Confirmar Quitacao</button>
+					</div>
+				</form>
+			</div>
+		</div>
+
+		<script type="module" th:src="@{/js/contas-receber-cliente.js}"></script>
+	</div>
+</body>
+</html>
