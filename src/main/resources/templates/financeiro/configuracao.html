@@ -1,0 +1,61 @@
+<html lang="pt-br"
+	  xmlns:th="http://www.thymeleaf.org"
+	  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	  layout:decorate="~{template}">
+
+<head>
+	<title>Configuracao Financeira</title>
+</head>
+
+<body>
+	<div layout:fragment="conteudo">
+		<div class="container">
+			<div class="card mt-3">
+				<div class="card-header"><i class="bi bi-sliders"></i> Configuracao Financeira</div>
+				<form th:action="@{/financeiro/configuracao}" method="POST">
+					<input type="hidden" name="id" th:value="${config?.id}">
+					<div class="card-body row g-3">
+						<div class="col-md-4">
+							<label class="form-label">Taxa de juros ao mes - atraso (%)</label>
+							<input type="number" step="0.0001" class="form-control" name="taxaJurosMensal" th:value="${config?.taxaJurosMensal}" required>
+							<small class="text-muted">Aplicado sobre parcelas vencidas.</small>
+						</div>
+						<div class="col-md-4">
+							<label class="form-label">Multa por atraso (%)</label>
+							<input type="number" step="0.0001" class="form-control" name="multaAtrasoPercentual" th:value="${config?.multaAtrasoPercentual}" required>
+							<small class="text-muted">Limite legal (CDC): 2%.</small>
+						</div>
+						<div class="col-md-4">
+							<label class="form-label">Carencia (dias)</label>
+							<input type="number" class="form-control" name="carenciaDias" th:value="${config?.carenciaDias}" min="0" required>
+						</div>
+						<div class="col-md-4">
+							<label class="form-label">Dias para 1a parcela</label>
+							<input type="number" class="form-control" name="diasPrimeiraParcela" th:value="${config?.diasPrimeiraParcela}" min="0" required>
+						</div>
+						<div class="col-md-4">
+							<label class="form-label">Maximo de parcelas</label>
+							<input type="number" class="form-control" name="maxParcelas" th:value="${config?.maxParcelas}" min="1" required>
+						</div>
+						<div class="col-md-4">
+							<label class="form-label">Taxa do parcelamento (com juros) (%)</label>
+							<input type="number" step="0.0001" class="form-control" name="taxaJurosParcelamento" th:value="${config?.taxaJurosParcelamento}" required>
+							<small class="text-muted">Usada na Tabela Price no PDV.</small>
+						</div>
+						<div class="col-md-4">
+							<label class="form-label">Juros compostos</label>
+							<select class="form-select" name="jurosCompostos">
+								<option value="true" th:selected="${config?.jurosCompostos}">Sim (padrao de mercado)</option>
+								<option value="false" th:selected="${!config?.jurosCompostos}">Nao (simples)</option>
+							</select>
+						</div>
+						<div class="col-md-12 d-flex justify-content-end">
+							<button type="submit" class="btn btn-success"><i class="bi bi-check2"></i> Salvar Configuracao</button>
+						</div>
+					</div>
+				</form>
+			</div>
+		</div>
+	</div>
+</body>
+</html>

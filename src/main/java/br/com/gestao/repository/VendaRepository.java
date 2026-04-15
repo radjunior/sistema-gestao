@@ -13,6 +13,12 @@ import br.com.gestao.entity.enums.StatusVenda;
 @Repository
 public interface VendaRepository extends JpaRepository<Venda, Long> {
 
+	Optional<Venda> findByIdAndEmpresaId(Long id, Long empresaId);
+
+	List<Venda> findAllByEmpresaIdOrderByDataVendaDesc(Long empresaId);
+
+	List<Venda> findAllByEmpresaIdAndDataVendaBetweenOrderByDataVendaDesc(Long empresaId, LocalDateTime inicio, LocalDateTime fim);
+
 	List<Venda> findAllByEmpresaIdOrderByDataVendaDesc(Long empresaId);
 
 	List<Venda> findAllByEmpresaIdAndStatusOrderByDataVendaDesc(Long empresaId, StatusVenda status);

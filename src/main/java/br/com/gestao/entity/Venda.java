@@ -37,6 +37,37 @@ public class Venda extends EntityAudit {
 	@Column(name = "data_venda", nullable = false)
 	private LocalDateTime dataVenda = LocalDateTime.now();
 
+	@Column(name = "valor_subtotal", nullable = false, precision = 15, scale = 2)
+	private BigDecimal valorSubtotal = BigDecimal.ZERO;
+
+	@Column(name = "valor_desconto", nullable = false, precision = 15, scale = 2)
+	private BigDecimal valorDesconto = BigDecimal.ZERO;
+
+	@Column(name = "valor_total", nullable = false, precision = 15, scale = 2)
+	private BigDecimal valorTotal = BigDecimal.ZERO;
+
+	@Column(name = "valor_total_com_juros", nullable = false, precision = 15, scale = 2)
+	private BigDecimal valorTotalComJuros = BigDecimal.ZERO;
+
+	@Enumerated(EnumType.STRING)
+	@Column(name = "forma_pagamento", nullable = false, length = 30)
+	private FormaPagamento formaPagamento;
+
+	@Enumerated(EnumType.STRING)
+	@Column(nullable = false, length = 20)
+	private StatusVenda status = StatusVenda.FINALIZADA;
+
+	@Column(nullable = false)
+	private boolean parcelado = false;
+
+	@Column(name = "total_parcelas", nullable = false)
+	private Integer totalParcelas = 1;
+
+	@Column(name = "taxa_juros_mensal", precision = 10, scale = 4)
+	private BigDecimal taxaJurosMensal = BigDecimal.ZERO;
+
+	@Column(name = "com_juros", nullable = false)
+	private boolean comJuros = false;
 	@Enumerated(EnumType.STRING)
 	@Column(nullable = false, length = 20)
 	private StatusVenda status = StatusVenda.ABERTA;
@@ -54,6 +85,10 @@ public class Venda extends EntityAudit {
 	private String observacao;
 
 	@OneToMany(mappedBy = "venda", cascade = CascadeType.ALL, orphanRemoval = true)
+	private List<ItemVenda> itens = new ArrayList<>();
+
+	@OneToMany(mappedBy = "venda", cascade = CascadeType.ALL, orphanRemoval = true)
+	private List<Parcela> parcelas = new ArrayList<>();
 	private List<VendaItem> itens = new ArrayList<>();
 
 	@OneToMany(mappedBy = "venda", cascade = CascadeType.ALL, orphanRemoval = true)
@@ -122,6 +157,46 @@ public class Venda extends EntityAudit {
 		this.dataVenda = dataVenda;
 	}
 
+	public BigDecimal getValorSubtotal() {
+		return valorSubtotal;
+	}
+
+	public void setValorSubtotal(BigDecimal valorSubtotal) {
+		this.valorSubtotal = valorSubtotal;
+	}
+
+	public BigDecimal getValorDesconto() {
+		return valorDesconto;
+	}
+
+	public void setValorDesconto(BigDecimal valorDesconto) {
+		this.valorDesconto = valorDesconto;
+	}
+
+	public BigDecimal getValorTotal() {
+		return valorTotal;
+	}
+
+	public void setValorTotal(BigDecimal valorTotal) {
+		this.valorTotal = valorTotal;
+	}
+
+	public BigDecimal getValorTotalComJuros() {
+		return valorTotalComJuros;
+	}
+
+	public void setValorTotalComJuros(BigDecimal valorTotalComJuros) {
+		this.valorTotalComJuros = valorTotalComJuros;
+	}
+
+	public FormaPagamento getFormaPagamento() {
+		return formaPagamento;
+	}
+
+	public void setFormaPagamento(FormaPagamento formaPagamento) {
+		this.formaPagamento = formaPagamento;
+	}
+
 	public StatusVenda getStatus() {
 		return status;
 	}
@@ -130,6 +205,36 @@ public class Venda extends EntityAudit {
 		this.status = status;
 	}
 
+	public boolean isParcelado() {
+		return parcelado;
+	}
+
+	public void setParcelado(boolean parcelado) {
+		this.parcelado = parcelado;
+	}
+
+	public Integer getTotalParcelas() {
+		return totalParcelas;
+	}
+
+	public void setTotalParcelas(Integer totalParcelas) {
+		this.totalParcelas = totalParcelas;
+	}
+
+	public BigDecimal getTaxaJurosMensal() {
+		return taxaJurosMensal;
+	}
+
+	public void setTaxaJurosMensal(BigDecimal taxaJurosMensal) {
+		this.taxaJurosMensal = taxaJurosMensal;
+	}
+
+	public boolean isComJuros() {
+		return comJuros;
+	}
+
+	public void setComJuros(boolean comJuros) {
+		this.comJuros = comJuros;
 	public BigDecimal getSubtotal() {
 		return subtotal;
 	}
@@ -162,6 +267,20 @@ public class Venda extends EntityAudit {
 		this.observacao = observacao;
 	}
 
+	public List<ItemVenda> getItens() {
+		return itens;
+	}
+
+	public void setItens(List<ItemVenda> itens) {
+		this.itens = itens;
+	}
+
+	public List<Parcela> getParcelas() {
+		return parcelas;
+	}
+
+	public void setParcelas(List<Parcela> parcelas) {
+		this.parcelas = parcelas;
 	public List<VendaItem> getItens() {
 		return itens;
 	}

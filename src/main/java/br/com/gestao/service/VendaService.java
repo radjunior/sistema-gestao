@@ -1,6 +1,29 @@
 package br.com.gestao.service;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import br.com.gestao.entity.Cliente;
+import br.com.gestao.entity.ConfiguracaoFinanceira;
+import br.com.gestao.entity.Empresa;
+import br.com.gestao.entity.FormaPagamento;
+import br.com.gestao.entity.ItemVenda;
+import br.com.gestao.entity.Parcela;
+import br.com.gestao.entity.Produto;
+import br.com.gestao.entity.StatusParcela;
+import br.com.gestao.entity.StatusVenda;
+import br.com.gestao.entity.Venda;
+import br.com.gestao.repository.ClienteRepository;
+import br.com.gestao.repository.ProdutoRepository;
+import br.com.gestao.repository.VendaRepository;
+import jakarta.persistence.EntityNotFoundException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
