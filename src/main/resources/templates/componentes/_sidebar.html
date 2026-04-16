@@ -27,8 +27,12 @@
 							<li><a class="dropdown-item" th:href="@{/cadastro/cliente}">Cliente</a></li>
 						</ul>
 					</li>
-					<li class="nav-item" sec:authorize="hasAnyAuthority('ADMIN_EMPRESA', 'GERENTE', 'OPERADOR')">
-						<a class="nav-link" th:href="@{/pdv/venda}"><i class="bi bi-cart-check-fill"></i> PDV</a>
+					<li class="nav-item dropdown" sec:authorize="hasAnyAuthority('ADMIN_EMPRESA', 'GERENTE', 'OPERADOR')">
+						<a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi bi-bag-fill"></i> Vendas</a>
+						<ul class="dropdown-menu">
+							<li><a class="dropdown-item" th:href="@{/venda/pdv}"><i class="bi bi-cart-check-fill"></i> PDV</a></li>
+							<li><a class="dropdown-item" th:href="@{/venda/vendas}">Historico de Vendas</a></li>
+						</ul>
 					</li>
 					<li class="nav-item dropdown" sec:authorize="hasAnyAuthority('ADMIN_EMPRESA', 'GERENTE', 'OPERADOR')">
 						<a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi bi-cash-coin"></i> Financeiro</a>
@@ -36,11 +40,6 @@
 							<li><a class="dropdown-item" th:href="@{/financeiro/contas-receber}">Contas a Receber</a></li>
 							<li sec:authorize="hasAnyAuthority('ADMIN_EMPRESA', 'GERENTE')"><hr class="dropdown-divider"></li>
 							<li sec:authorize="hasAnyAuthority('ADMIN_EMPRESA', 'GERENTE')"><a class="dropdown-item" th:href="@{/financeiro/configuracao}">Configuracao</a></li>
-					<li class="nav-item dropdown" sec:authorize="hasAnyAuthority('ADMIN_EMPRESA', 'GERENTE', 'OPERADOR')">
-						<a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi bi-bag-fill"></i> Vendas</a>
-						<ul class="dropdown-menu">
-							<li><a class="dropdown-item" th:href="@{/venda/pdv}">PDV</a></li>
-							<li><a class="dropdown-item" th:href="@{/venda/vendas}">Historico de Vendas</a></li>
 						</ul>
 					</li>
 					<li class="nav-item dropdown" sec:authorize="hasAuthority('ADMIN_SAAS')">

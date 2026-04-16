@@ -1,9 +1,9 @@
 package br.com.gestao.service;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -12,39 +12,20 @@ import org.springframework.transaction.annotation.Transactional;
 
 import br.com.gestao.entity.Cliente;
 import br.com.gestao.entity.ConfiguracaoFinanceira;
-import br.com.gestao.entity.Empresa;
-import br.com.gestao.entity.FormaPagamento;
-import br.com.gestao.entity.ItemVenda;
-import br.com.gestao.entity.Parcela;
-import br.com.gestao.entity.Produto;
-import br.com.gestao.entity.StatusParcela;
-import br.com.gestao.entity.StatusVenda;
-import br.com.gestao.entity.Venda;
-import br.com.gestao.repository.ClienteRepository;
-import br.com.gestao.repository.ProdutoRepository;
-import br.com.gestao.repository.VendaRepository;
-import jakarta.persistence.EntityNotFoundException;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.util.List;
-
-import org.springframework.stereotype.Service;
-
-import br.com.gestao.entity.Cliente;
 import br.com.gestao.entity.Estoque;
+import br.com.gestao.entity.Parcela;
 import br.com.gestao.entity.Produto;
 import br.com.gestao.entity.Venda;
 import br.com.gestao.entity.VendaItem;
 import br.com.gestao.entity.VendaPagamento;
 import br.com.gestao.entity.enums.FormaPagamento;
+import br.com.gestao.entity.enums.StatusParcela;
 import br.com.gestao.entity.enums.StatusVenda;
 import br.com.gestao.repository.ClienteRepository;
 import br.com.gestao.repository.EstoqueRepository;
 import br.com.gestao.repository.ProdutoRepository;
 import br.com.gestao.repository.VendaRepository;
 import jakarta.persistence.EntityNotFoundException;
-import jakarta.transaction.Transactional;
 
 @Service
 public class VendaService {
@@ -54,20 +35,33 @@ public class VendaService {
 	private final EstoqueRepository estoqueRepository;
 	private final ClienteRepository clienteRepository;
 	private final ContextoUsuarioService contextoUsuarioService;
+	private final ConfiguracaoFinanceiraService configuracaoFinanceiraService;
+	private final CalculoFinanceiroService calculoFinanceiroService;
+	private final LogFinanceiroService logFinanceiroService;
 
 	public VendaService(VendaRepository vendaRepository, ProdutoRepository produtoRepository,
 			EstoqueRepository estoqueRepository, ClienteRepository clienteRepository,
-			ContextoUsuarioService contextoUsuarioService) {
+			ContextoUsuarioService contextoUsuarioService,
+			ConfiguracaoFinanceiraService configuracaoFinanceiraService,
+			CalculoFinanceiroService calculoFinanceiroService,
+			LogFinanceiroService logFinanceiroService) {
 		this.vendaRepository = vendaRepository;
 		this.produtoRepository = produtoRepository;
 		this.estoqueRepository = estoqueRepository;
 		this.clienteRepository = clienteRepository;
 		this.contextoUsuarioService = contextoUsuarioService;
+		this.configuracaoFinanceiraService = configuracaoFinanceiraService;
+		this.calculoFinanceiroService = calculoFinanceiroService;
+		this.logFinanceiroService = logFinanceiroService;
 	}
 
 	public List<Venda> consultarTodas() {
 		return vendaRepository.findAllByEmpresaIdOrderByDataVendaDesc(
 				contextoUsuarioService.getEmpresaIdObrigatoria());
+	}
+
+	public List<Venda> consultarRecentes() {
+		return consultarTodas();
 	}
 
 	public List<Venda> consultarPorPeriodo(LocalDate dataInicio, LocalDate dataFim) {
@@ -216,6 +210,95 @@ public class VendaService {
 		return vendaRepository.save(venda);
 	}
 
+	/**
+	 * Registra o plano de parcelamento (crediario) sobre o saldo restante da venda.
+	 * Nao finaliza a venda — apenas cria um VendaPagamento do tipo PARCELADO e as Parcelas.
+	 * Uso: cliente paga parte a vista e parte no crediario; ou paga 100% no crediario.
+	 */
+	@Transactional
+	public Venda aplicarParcelamento(Long vendaId, Integer totalParcelas, Boolean comJuros,
+			BigDecimal taxaJurosMensal, Integer diasPrimeiraParcela) throws Exception {
+		Venda venda = consultarPorId(vendaId);
+		validarVendaAberta(venda);
+
+		if (venda.getCliente() == null) {
+			throw new Exception("Parcelamento exige um cliente vinculado a venda!");
+		}
+		if (totalParcelas == null || totalParcelas < 1) {
+			throw new Exception("Quantidade de parcelas invalida!");
+		}
+
+		ConfiguracaoFinanceira config = configuracaoFinanceiraService.obterOuCriarPadrao();
+		if (totalParcelas > config.getMaxParcelas()) {
+			throw new Exception("Quantidade de parcelas excede o maximo permitido (" + config.getMaxParcelas() + ")!");
+		}
+
+		BigDecimal saldo = venda.getValorTotal().subtract(venda.getTotalPago());
+		if (saldo.signum() <= 0) {
+			throw new Exception("Venda ja esta totalmente paga!");
+		}
+
+		// Limpa parcelas anteriores (caso esteja reconfigurando)
+		venda.getParcelas().clear();
+		venda.getPagamentos().removeIf(p -> p.getFormaPagamento() == FormaPagamento.PARCELADO);
+
+		boolean aplicarJuros = Boolean.TRUE.equals(comJuros);
+		BigDecimal taxa = aplicarJuros
+				? (taxaJurosMensal != null ? taxaJurosMensal : config.getTaxaJurosParcelamento())
+				: BigDecimal.ZERO;
+
+		List<BigDecimal> valoresParcelas = aplicarJuros
+				? calculoFinanceiroService.calcularParcelasComJuros(saldo, totalParcelas, taxa)
+				: calculoFinanceiroService.calcularParcelasSemJuros(saldo, totalParcelas);
+		BigDecimal totalComJuros = calculoFinanceiroService.somar(valoresParcelas);
+
+		venda.setParcelado(true);
+		venda.setTotalParcelas(totalParcelas);
+		venda.setComJuros(aplicarJuros);
+		venda.setTaxaJurosMensal(taxa);
+		venda.setValorTotalComJuros(venda.getTotalPago().add(totalComJuros));
+
+		// Registra pagamento PARCELADO correspondente ao saldo a receber no crediario
+		VendaPagamento pag = new VendaPagamento();
+		pag.setFormaPagamento(FormaPagamento.PARCELADO);
+		pag.setValor(saldo);
+		venda.adicionarPagamento(pag);
+
+		// Gera parcelas
+		int dias = diasPrimeiraParcela != null ? diasPrimeiraParcela : config.getDiasPrimeiraParcela();
+		List<LocalDate> vencimentos = calculoFinanceiroService.calcularVencimentos(LocalDate.now(), totalParcelas, dias);
+		List<Parcela> parcelas = new ArrayList<>(totalParcelas);
+		for (int i = 0; i < totalParcelas; i++) {
+			Parcela p = new Parcela();
+			p.setEmpresa(venda.getEmpresa());
+			p.setCliente(venda.getCliente());
+			p.setNumeroParcela(i + 1);
+			p.setTotalParcelas(totalParcelas);
+			p.setValorNominal(valoresParcelas.get(i));
+			p.setDataVencimento(vencimentos.get(i));
+			p.setStatus(StatusParcela.PENDENTE);
+			venda.adicionarParcela(p);
+			parcelas.add(p);
+		}
+
+		return vendaRepository.save(venda);
+	}
+
+	@Transactional
+	public Venda removerParcelamento(Long vendaId) throws Exception {
+		Venda venda = consultarPorId(vendaId);
+		validarVendaAberta(venda);
+
+		venda.getParcelas().clear();
+		venda.getPagamentos().removeIf(p -> p.getFormaPagamento() == FormaPagamento.PARCELADO);
+		venda.setParcelado(false);
+		venda.setTotalParcelas(1);
+		venda.setComJuros(false);
+		venda.setTaxaJurosMensal(BigDecimal.ZERO);
+		venda.setValorTotalComJuros(venda.getValorTotal());
+		return vendaRepository.save(venda);
+	}
+
 	@Transactional
 	public Venda finalizarVenda(Long vendaId) throws Exception {
 		Venda venda = consultarPorId(vendaId);
@@ -229,6 +312,11 @@ public class VendaService {
 		if (totalPago.compareTo(venda.getValorTotal()) < 0) {
 			throw new Exception("Pagamento incompleto! Falta: R$ "
 					+ venda.getValorTotal().subtract(totalPago));
+		}
+
+		// Se tem parcelas configuradas, garante que o pagamento PARCELADO esta presente
+		if (venda.isParcelado() && venda.getParcelas().isEmpty()) {
+			throw new Exception("Venda marcada como parcelada mas sem parcelas geradas!");
 		}
 
 		// Baixa no estoque
@@ -246,8 +334,16 @@ public class VendaService {
 			estoqueRepository.save(estoque);
 		}
 
+		if (!venda.isComJuros()) {
+			venda.setValorTotalComJuros(venda.getValorTotal());
+		}
 		venda.setStatus(StatusVenda.FINALIZADA);
-		return vendaRepository.save(venda);
+		Venda salva = vendaRepository.save(venda);
+
+		logFinanceiroService.registrar("VENDA_FINALIZADA", null, null, salva.getValorTotal(),
+				"Venda #" + salva.getId()
+						+ (salva.isParcelado() ? " - " + salva.getTotalParcelas() + "x no crediario" : ""));
+		return salva;
 	}
 
 	@Transactional
@@ -267,6 +363,13 @@ public class VendaService {
 					estoque.setQuantidade(estoque.getQuantidade() + item.getQuantidade());
 					estoqueRepository.save(estoque);
 				}
+			}
+		}
+
+		// Cancela parcelas abertas
+		for (Parcela p : venda.getParcelas()) {
+			if (p.getStatus() == StatusParcela.PENDENTE || p.getStatus() == StatusParcela.VENCIDO) {
+				p.setStatus(StatusParcela.CANCELADO);
 			}
 		}
 

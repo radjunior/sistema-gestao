@@ -1,4 +1,4 @@
-package br.com.gestao.entity;
+package br.com.gestao.entity.enums;
 
 public enum StatusParcela {
 

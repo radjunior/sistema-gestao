@@ -12,9 +12,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import br.com.gestao.entity.ConfiguracaoFinanceira;
-import br.com.gestao.entity.FormaPagamento;
 import br.com.gestao.entity.Parcela;
-import br.com.gestao.entity.StatusParcela;
+import br.com.gestao.entity.enums.FormaPagamento;
+import br.com.gestao.entity.enums.StatusParcela;
 import br.com.gestao.repository.ParcelaRepository;
 import jakarta.persistence.EntityNotFoundException;
 

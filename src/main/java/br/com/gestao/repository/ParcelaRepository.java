@@ -12,7 +12,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import br.com.gestao.entity.Parcela;
-import br.com.gestao.entity.StatusParcela;
+import br.com.gestao.entity.enums.StatusParcela;
 
 @Repository
 public interface ParcelaRepository extends JpaRepository<Parcela, Long> {
@@ -29,31 +29,31 @@ public interface ParcelaRepository extends JpaRepository<Parcela, Long> {
 	List<Parcela> findGlobalByStatusInAndDataVencimentoLessThan(@Param("status") List<StatusParcela> status, @Param("data") LocalDate data);
 
 	@Query("SELECT COALESCE(SUM(p.valorNominal + p.jurosAplicados + p.multaAplicada), 0) "
-			+ "FROM Parcela p WHERE p.empresa.id = :empresaId AND p.status IN (br.com.gestao.entity.StatusParcela.PENDENTE, br.com.gestao.entity.StatusParcela.VENCIDO)")
+			+ "FROM Parcela p WHERE p.empresa.id = :empresaId AND p.status IN (br.com.gestao.entity.enums.StatusParcela.PENDENTE, br.com.gestao.entity.enums.StatusParcela.VENCIDO)")
 	BigDecimal somarTotalEmAberto(@Param("empresaId") Long empresaId);
 
 	@Query("SELECT COALESCE(SUM(p.valorNominal + p.jurosAplicados + p.multaAplicada), 0) "
-			+ "FROM Parcela p WHERE p.empresa.id = :empresaId AND p.status = br.com.gestao.entity.StatusParcela.VENCIDO")
+			+ "FROM Parcela p WHERE p.empresa.id = :empresaId AND p.status = br.com.gestao.entity.enums.StatusParcela.VENCIDO")
 	BigDecimal somarTotalVencido(@Param("empresaId") Long empresaId);
 
 	@Query("SELECT COALESCE(SUM(p.valorPago), 0) FROM Parcela p "
-			+ "WHERE p.empresa.id = :empresaId AND p.status = br.com.gestao.entity.StatusParcela.PAGO "
+			+ "WHERE p.empresa.id = :empresaId AND p.status = br.com.gestao.entity.enums.StatusParcela.PAGO "
 			+ "AND p.dataPagamento BETWEEN :inicio AND :fim")
 	BigDecimal somarRecebimentosPeriodo(@Param("empresaId") Long empresaId, @Param("inicio") LocalDate inicio, @Param("fim") LocalDate fim);
 
 	@Query("SELECT COUNT(DISTINCT p.cliente.id) FROM Parcela p "
-			+ "WHERE p.empresa.id = :empresaId AND p.status = br.com.gestao.entity.StatusParcela.VENCIDO")
+			+ "WHERE p.empresa.id = :empresaId AND p.status = br.com.gestao.entity.enums.StatusParcela.VENCIDO")
 	Long contarClientesInadimplentes(@Param("empresaId") Long empresaId);
 
 	@Query("SELECT p.cliente.id, p.cliente.nome, "
 			+ "SUM(p.valorNominal + p.jurosAplicados + p.multaAplicada), "
-			+ "SUM(CASE WHEN p.status = br.com.gestao.entity.StatusParcela.VENCIDO THEN 1 ELSE 0 END), "
+			+ "SUM(CASE WHEN p.status = br.com.gestao.entity.enums.StatusParcela.VENCIDO THEN 1 ELSE 0 END), "
 			+ "MIN(p.dataVencimento) "
 			+ "FROM Parcela p "
 			+ "WHERE p.empresa.id = :empresaId "
-			+ "AND p.status IN (br.com.gestao.entity.StatusParcela.PENDENTE, br.com.gestao.entity.StatusParcela.VENCIDO) "
+			+ "AND p.status IN (br.com.gestao.entity.enums.StatusParcela.PENDENTE, br.com.gestao.entity.enums.StatusParcela.VENCIDO) "
 			+ "GROUP BY p.cliente.id, p.cliente.nome "
-			+ "ORDER BY SUM(CASE WHEN p.status = br.com.gestao.entity.StatusParcela.VENCIDO THEN 1 ELSE 0 END) DESC, MIN(p.dataVencimento) ASC")
+			+ "ORDER BY SUM(CASE WHEN p.status = br.com.gestao.entity.enums.StatusParcela.VENCIDO THEN 1 ELSE 0 END) DESC, MIN(p.dataVencimento) ASC")
 	List<Object[]> consultarResumoClientesDevedores(@Param("empresaId") Long empresaId);
 
 	List<Parcela> findAllByEmpresaIdAndClienteIdAndStatusIn(Long empresaId, Long clienteId, List<StatusParcela> status);
@@ -63,7 +63,7 @@ public interface ParcelaRepository extends JpaRepository<Parcela, Long> {
 			+ "AND (:inicio IS NULL OR p.dataVencimento >= :inicio) "
 			+ "AND (:fim IS NULL OR p.dataVencimento <= :fim) "
 			+ "AND (:clienteId IS NULL OR p.cliente.id = :clienteId) "
-			+ "ORDER BY CASE WHEN p.status = br.com.gestao.entity.StatusParcela.VENCIDO THEN 0 ELSE 1 END, p.dataVencimento ASC")
+			+ "ORDER BY CASE WHEN p.status = br.com.gestao.entity.enums.StatusParcela.VENCIDO THEN 0 ELSE 1 END, p.dataVencimento ASC")
 	List<Parcela> filtrar(@Param("empresaId") Long empresaId,
 			@Param("status") StatusParcela status,
 			@Param("inicio") LocalDate inicio,

@@ -12,9 +12,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import br.com.gestao.controller.DefaultController;
-import br.com.gestao.entity.FormaPagamento;
 import br.com.gestao.entity.Parcela;
-import br.com.gestao.entity.StatusParcela;
+import br.com.gestao.entity.enums.FormaPagamento;
+import br.com.gestao.entity.enums.StatusParcela;
 import br.com.gestao.repository.ClienteRepository;
 import br.com.gestao.service.ContasAReceberService;
 import br.com.gestao.service.ContextoUsuarioService;

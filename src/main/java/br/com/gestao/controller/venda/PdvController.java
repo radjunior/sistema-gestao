@@ -12,9 +12,11 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import br.com.gestao.controller.DefaultController;
+import br.com.gestao.entity.ConfiguracaoFinanceira;
 import br.com.gestao.entity.Venda;
 import br.com.gestao.entity.enums.FormaPagamento;
 import br.com.gestao.service.ClienteService;
+import br.com.gestao.service.ConfiguracaoFinanceiraService;
 import br.com.gestao.service.ProdutoService;
 import br.com.gestao.service.VendaService;
 
@@ -27,11 +29,14 @@ public class PdvController extends DefaultController {
 	private final VendaService vendaService;
 	private final ProdutoService produtoService;
 	private final ClienteService clienteService;
+	private final ConfiguracaoFinanceiraService configuracaoFinanceiraService;
 
-	public PdvController(VendaService vendaService, ProdutoService produtoService, ClienteService clienteService) {
+	public PdvController(VendaService vendaService, ProdutoService produtoService, ClienteService clienteService,
+			ConfiguracaoFinanceiraService configuracaoFinanceiraService) {
 		this.vendaService = vendaService;
 		this.produtoService = produtoService;
 		this.clienteService = clienteService;
+		this.configuracaoFinanceiraService = configuracaoFinanceiraService;
 	}
 
 	@GetMapping
@@ -128,6 +133,32 @@ public class PdvController extends DefaultController {
 		return REDIRECT_PDV + vendaId;
 	}
 
+	@PostMapping("/{vendaId}/parcelamento")
+	public String aplicarParcelamento(@PathVariable Long vendaId, RedirectAttributes redirectAttributes,
+			@RequestParam Integer totalParcelas,
+			@RequestParam(required = false, defaultValue = "false") Boolean comJuros,
+			@RequestParam(required = false) BigDecimal taxaJurosMensal,
+			@RequestParam(required = false) Integer diasPrimeiraParcela) {
+		try {
+			vendaService.aplicarParcelamento(vendaId, totalParcelas, comJuros, taxaJurosMensal, diasPrimeiraParcela);
+			showSucesso(redirectAttributes, "Parcelamento configurado: " + totalParcelas + "x!");
+		} catch (Exception e) {
+			showError(redirectAttributes, e.getMessage());
+		}
+		return REDIRECT_PDV + vendaId;
+	}
+
+	@PostMapping("/{vendaId}/remover-parcelamento")
+	public String removerParcelamento(@PathVariable Long vendaId, RedirectAttributes redirectAttributes) {
+		try {
+			vendaService.removerParcelamento(vendaId);
+			showSucesso(redirectAttributes, "Parcelamento removido!");
+		} catch (Exception e) {
+			showError(redirectAttributes, e.getMessage());
+		}
+		return REDIRECT_PDV + vendaId;
+	}
+
 	@PostMapping("/{vendaId}/finalizar")
 	public String finalizarVenda(@PathVariable Long vendaId, RedirectAttributes redirectAttributes) {
 		try {
@@ -157,6 +188,8 @@ public class PdvController extends DefaultController {
 		model.addAttribute("produtos", produtoService.consultarProduto());
 		model.addAttribute("clientes", clienteService.consultar());
 		model.addAttribute("formasPagamento", FormaPagamento.values());
+		ConfiguracaoFinanceira config = configuracaoFinanceiraService.obterOuCriarPadrao();
+		model.addAttribute("configFinanceira", config);
 	}
 
 }

@@ -217,6 +217,100 @@
 							</div>
 						</div>
 
+						<!-- Parcelamento (Crediario) -->
+						<div class="card mt-3" th:if="${venda.status.name() == 'ABERTA'}">
+							<div class="card-header d-flex justify-content-between align-items-center">
+								<span><i class="bi bi-calendar3"></i> Parcelamento (Crediario)</span>
+								<span th:if="${venda.parcelado}" class="badge bg-info"
+									  th:text="${venda.totalParcelas + 'x ' + (venda.comJuros ? 'c/ juros' : 's/ juros')}"></span>
+							</div>
+							<div class="card-body"
+								 th:with="saldo=${venda.valorTotal.subtract(venda.totalPago)}">
+								<div class="alert alert-warning small py-2" th:if="${venda.cliente == null}">
+									<i class="bi bi-exclamation-triangle"></i> Selecione um cliente na venda para habilitar o crediario.
+								</div>
+								<form th:if="${venda.cliente != null}"
+									  th:action="@{/venda/pdv/{id}/parcelamento(id=${venda.id})}" method="POST"
+									  id="form-parcelamento">
+									<div class="row g-2">
+										<div class="col-6">
+											<label class="form-label small">Parcelas</label>
+											<input type="number" class="form-control form-control-sm" name="totalParcelas"
+												   id="parc-total" min="1"
+												   th:max="${configFinanceira.maxParcelas}"
+												   th:value="${venda.parcelado ? venda.totalParcelas : 2}" required>
+										</div>
+										<div class="col-6 d-flex align-items-end">
+											<div class="form-check">
+												<input class="form-check-input" type="checkbox" name="comJuros" value="true"
+													   id="parc-com-juros" th:checked="${venda.comJuros}">
+												<label class="form-check-label small" for="parc-com-juros">Com juros</label>
+											</div>
+										</div>
+										<div class="col-6">
+											<label class="form-label small">Taxa a.m. (%)</label>
+											<input type="number" class="form-control form-control-sm" name="taxaJurosMensal"
+												   id="parc-taxa" step="0.0001" min="0"
+												   th:value="${venda.comJuros ? venda.taxaJurosMensal : configFinanceira.taxaJurosParcelamento}">
+										</div>
+										<div class="col-6">
+											<label class="form-label small">1a em (dias)</label>
+											<input type="number" class="form-control form-control-sm" name="diasPrimeiraParcela"
+												   min="0" th:value="${configFinanceira.diasPrimeiraParcela}">
+										</div>
+										<div class="col-12 small text-muted" id="parc-preview"
+											 th:data-saldo="${saldo}" th:data-default-taxa="${configFinanceira.taxaJurosParcelamento}">
+											Saldo a parcelar:
+											<span class="fw-bold" th:text="${'R$ ' + #numbers.formatDecimal(saldo, 1, 'POINT', 2, 'COMMA')}"></span>
+											<div id="parc-preview-valor" class="mt-1"></div>
+										</div>
+										<div class="col-12 d-grid gap-2">
+											<button type="submit" class="btn btn-outline-primary btn-sm"
+													th:disabled="${saldo.compareTo(T(java.math.BigDecimal).ZERO) <= 0}">
+												<i class="bi bi-check"></i> Aplicar Parcelamento
+											</button>
+										</div>
+									</div>
+								</form>
+								<form th:if="${venda.parcelado}"
+									  th:action="@{/venda/pdv/{id}/remover-parcelamento(id=${venda.id})}" method="POST" class="mt-2">
+									<button type="submit" class="btn btn-outline-danger btn-sm w-100"
+											onclick="return confirm('Remover parcelamento?')">
+										<i class="bi bi-x-circle"></i> Remover Parcelamento
+									</button>
+								</form>
+
+								<!-- Lista de parcelas -->
+								<div class="mt-3" th:unless="${venda.parcelas.isEmpty()}">
+									<hr>
+									<div class="small fw-bold mb-1">Parcelas geradas</div>
+									<table class="table table-sm small mb-0">
+										<thead>
+											<tr>
+												<th>#</th>
+												<th>Vencimento</th>
+												<th class="text-end">Valor</th>
+											</tr>
+										</thead>
+										<tbody>
+											<tr th:each="p : ${venda.parcelas}">
+												<td th:text="${p.numeroParcela + '/' + p.totalParcelas}"></td>
+												<td th:text="${#temporals.format(p.dataVencimento, 'dd/MM/yyyy')}"></td>
+												<td class="text-end" th:text="${'R$ ' + #numbers.formatDecimal(p.valorNominal, 1, 'POINT', 2, 'COMMA')}"></td>
+											</tr>
+										</tbody>
+										<tfoot th:if="${venda.comJuros}">
+											<tr class="table-light">
+												<td colspan="2" class="fw-bold">Total c/ juros:</td>
+												<td class="text-end fw-bold"
+													th:text="${'R$ ' + #numbers.formatDecimal(venda.valorTotalComJuros, 1, 'POINT', 2, 'COMMA')}"></td>
+											</tr>
+										</tfoot>
+									</table>
+								</div>
+							</div>
+						</div>
+
 						<!-- Botao Finalizar -->
 						<div class="mt-3" th:if="${venda.status.name() == 'ABERTA'}">
 							<form th:action="@{/venda/pdv/{id}/finalizar(id=${venda.id})}" method="POST">

@@ -5,7 +5,11 @@ public enum FormaPagamento {
 	DINHEIRO("Dinheiro"),
 	CARTAO_CREDITO("Cartao de Credito"),
 	CARTAO_DEBITO("Cartao de Debito"),
-	PIX("PIX");
+	PIX("PIX"),
+	PARCELADO("Parcelado (Crediario)"),
+	BOLETO("Boleto"),
+	CHEQUE("Cheque"),
+	OUTRO("Outro");
 
 	private final String descricao;
 
