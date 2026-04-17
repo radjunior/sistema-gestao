@@ -54,15 +54,21 @@ public class EstoqueController extends DefaultController {
 	@PostMapping("/ajuste-massa")
 	public String ajustarEmMassa(RedirectAttributes ra,
 			@RequestParam(required = false) List<Long> produtoIds,
-			@RequestParam(required = false) List<Integer> deltas,
+			@RequestParam(required = false) Integer valorMassa,
+			@RequestParam(required = false, defaultValue = "ENTRADA") String tipoMovimento,
 			@RequestParam(required = false) String motivo) {
 		try {
-			if (produtoIds == null || deltas == null || produtoIds.size() != deltas.size()) {
-				throw new Exception("Listas de produto e ajuste inconsistentes!");
+			if (produtoIds == null || produtoIds.isEmpty()) {
+				throw new Exception("Selecione ao menos um produto!");
 			}
+			if (valorMassa == null || valorMassa <= 0) {
+				throw new Exception("Informe uma quantidade maior que zero!");
+			}
+			int sinal = "SAIDA".equalsIgnoreCase(tipoMovimento) ? -1 : 1;
+			int delta = sinal * valorMassa;
 			List<AjusteEstoque> ajustes = new ArrayList<>(produtoIds.size());
-			for (int i = 0; i < produtoIds.size(); i++) {
-				ajustes.add(new AjusteEstoque(produtoIds.get(i), deltas.get(i)));
+			for (Long produtoId : produtoIds) {
+				ajustes.add(new AjusteEstoque(produtoId, delta));
 			}
 			List<AjusteResultado> resultados = estoqueService.ajustarEmMassa(ajustes, motivo);
 			showSucesso(ra, resultados.size() + " produto(s) ajustado(s) com sucesso!");

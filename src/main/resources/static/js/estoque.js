@@ -89,11 +89,16 @@
 		});
 	});
 
-	// Antes de submeter em massa, habilitar os hidden apenas das linhas marcadas com delta != 0
+	// Antes de submeter em massa, habilitar os hidden (produtoIds) das linhas marcadas
 	formMassa.addEventListener("submit", ev => {
 		if (!modoMassa.checked) {
-			// Em modo individual nao permitimos submeter o form-massa (sem intencao)
 			ev.preventDefault();
+			return;
+		}
+		const valor = parseInt(document.getElementById("valor-massa").value, 10) || 0;
+		if (valor <= 0) {
+			ev.preventDefault();
+			alert("Informe uma quantidade maior que zero para aplicar em massa.");
 			return;
 		}
 		let enviados = 0;
@@ -101,15 +106,14 @@
 			const chk = tr.querySelector(".chk-linha");
 			const idHidden = tr.querySelector(".hidden-massa-id");
 			const deltaHidden = tr.querySelector(".hidden-massa-delta");
-			const delta = parseInt(tr.querySelector(".input-delta").value, 10) || 0;
-			const elegivel = chk && chk.checked && delta !== 0;
+			const elegivel = chk && chk.checked;
 			idHidden.disabled = !elegivel;
-			deltaHidden.disabled = !elegivel;
+			if (deltaHidden) deltaHidden.disabled = true;
 			if (elegivel) enviados++;
 		});
 		if (enviados === 0) {
 			ev.preventDefault();
-			alert("Selecione pelo menos uma linha com ajuste diferente de zero.");
+			alert("Selecione pelo menos um produto.");
 		}
 	});
 

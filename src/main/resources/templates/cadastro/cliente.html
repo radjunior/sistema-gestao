@@ -25,11 +25,11 @@
 			            </div>
 			            <div class="col-md-3">
 			                <label class="form-label">CPF</label>
-			                <input type="text" class="form-control" name="cpf" th:value="${cliente?.cpf}" maxlength="14">
+			                <input type="text" class="form-control" id="cpf" name="cpf" th:value="${cliente?.cpf}" maxlength="14">
 			            </div>
 			            <div class="col-md-3">
 			                <label class="form-label">Telefone</label>
-			                <input type="text" class="form-control" name="telefone" th:value="${cliente?.telefone}" maxlength="20">
+			                <input type="text" class="form-control" id="telefone" name="telefone" th:value="${cliente?.telefone}" maxlength="20">
 			            </div>
 			            <div class="col-md-4">
 			                <label class="form-label">Email</label>
@@ -40,11 +40,11 @@
 			                <input type="text" class="form-control" name="endereco" th:value="${cliente?.endereco}" maxlength="255">
 			            </div>
 			            <div class="col-md-3">
-			                <label class="form-label">Ativo</label>
-			                <select class="form-select" name="ativo">
-			                    <option value="true" th:selected="${cliente?.ativo == null or cliente?.ativo}">Sim</option>
-			                    <option value="false" th:selected="${cliente?.ativo != null and !cliente?.ativo}">Nao</option>
-			                </select>
+			                <label class="form-label d-block">Ativo</label>
+			                <div class="form-check mt-2">
+			                    <input class="form-check-input" type="checkbox" name="ativo" value="true"
+			                           th:checked="${cliente == null or cliente.ativo == null or cliente.ativo}">
+			                </div>
 			            </div>
 			            <div class="col-md-11">
 			                <label class="form-label">Observacao</label>

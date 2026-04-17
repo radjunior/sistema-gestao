@@ -10,6 +10,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import br.com.gestao.controller.DefaultController;
 import br.com.gestao.entity.Produto;
+import br.com.gestao.service.FornecedorService;
 import br.com.gestao.service.GrupoService;
 import br.com.gestao.service.MarcaService;
 import br.com.gestao.service.ProdutoService;
@@ -25,13 +26,15 @@ public class ProdutoController extends DefaultController {
 	private final MarcaService marcaService;
 	private final GrupoService grupoService;
 	private final TamanhoService tamanhoService;
+	private final FornecedorService fornecedorService;
 
 	public ProdutoController(ProdutoService produtoService, MarcaService marcaService, GrupoService grupoService,
-			TamanhoService tamanhoService) {
+			TamanhoService tamanhoService, FornecedorService fornecedorService) {
 		this.produtoService = produtoService;
 		this.marcaService = marcaService;
 		this.grupoService = grupoService;
 		this.tamanhoService = tamanhoService;
+		this.fornecedorService = fornecedorService;
 	}
 
 	@GetMapping("/produto")
@@ -102,5 +105,6 @@ public class ProdutoController extends DefaultController {
 		model.addAttribute("grupos", grupoService.consultar());
 		model.addAttribute("subgrupos", grupoService.consultarSubgrupos());
 		model.addAttribute("tamanhos", tamanhoService.consultar());
+		model.addAttribute("fornecedores", fornecedorService.consultar());
 	}
 }

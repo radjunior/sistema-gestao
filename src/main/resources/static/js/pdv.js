@@ -150,6 +150,111 @@ window.confirmarExclusao = function(botao) {
 	});
 })();
 
+// Autocomplete de busca de cliente no PDV (abertura de venda)
+(function () {
+	const input = document.getElementById("busca-cliente");
+	if (!input) return;
+
+	const hiddenId = document.getElementById("cliente-id-selecionado");
+	const dropdown = document.getElementById("busca-cliente-dropdown");
+	const info = document.getElementById("busca-cliente-info");
+
+	let timer = null;
+	let ultimos = [];
+	let indiceAtivo = -1;
+
+	function limpar() {
+		hiddenId.value = "";
+		info.textContent = "Sem cliente = Consumidor final.";
+	}
+
+	function renderizar(lista) {
+		ultimos = lista;
+		indiceAtivo = -1;
+		if (!lista.length) {
+			dropdown.innerHTML = '<div class="list-group-item text-muted small">Nenhum cliente encontrado.</div>';
+			dropdown.classList.remove("d-none");
+			return;
+		}
+		dropdown.innerHTML = lista.map((c, i) => `
+			<button type="button" class="list-group-item list-group-item-action py-2 item-busca-cliente"
+					data-indice="${i}">
+				<div class="fw-bold">${c.nome}</div>
+				<div class="small text-muted">
+					${c.cpf ? 'CPF: ' + c.cpf : ''} ${c.telefone ? '| Tel: ' + c.telefone : ''}
+				</div>
+			</button>`).join("");
+		dropdown.classList.remove("d-none");
+	}
+
+	function esconder() {
+		dropdown.classList.add("d-none");
+		indiceAtivo = -1;
+	}
+
+	function selecionar(c) {
+		hiddenId.value = c.id;
+		input.value = c.nome;
+		info.textContent = `Cliente selecionado: ${c.nome}`;
+		esconder();
+	}
+
+	async function buscar(termo) {
+		try {
+			const resp = await fetch(`/venda/pdv/buscar-cliente?q=${encodeURIComponent(termo)}`);
+			if (!resp.ok) return;
+			renderizar(await resp.json());
+		} catch (e) {
+			console.error("Erro na busca de cliente:", e);
+		}
+	}
+
+	function destacar(novo) {
+		const itens = dropdown.querySelectorAll(".item-busca-cliente");
+		itens.forEach((el, i) => el.classList.toggle("active", i === novo));
+		if (novo >= 0 && itens[novo]) itens[novo].scrollIntoView({ block: "nearest" });
+	}
+
+	input.addEventListener("input", () => {
+		limpar();
+		const termo = input.value.trim();
+		clearTimeout(timer);
+		if (termo.length < 2) { esconder(); return; }
+		timer = setTimeout(() => buscar(termo), 180);
+	});
+
+	input.addEventListener("keydown", ev => {
+		if (dropdown.classList.contains("d-none") || !ultimos.length) return;
+		if (ev.key === "ArrowDown") {
+			ev.preventDefault();
+			indiceAtivo = Math.min(indiceAtivo + 1, ultimos.length - 1);
+			destacar(indiceAtivo);
+		} else if (ev.key === "ArrowUp") {
+			ev.preventDefault();
+			indiceAtivo = Math.max(indiceAtivo - 1, 0);
+			destacar(indiceAtivo);
+		} else if (ev.key === "Enter") {
+			ev.preventDefault();
+			const alvo = indiceAtivo >= 0 ? ultimos[indiceAtivo] : ultimos[0];
+			if (alvo) selecionar(alvo);
+		} else if (ev.key === "Escape") {
+			esconder();
+		}
+	});
+
+	dropdown.addEventListener("click", ev => {
+		const btn = ev.target.closest(".item-busca-cliente");
+		if (!btn) return;
+		const idx = parseInt(btn.dataset.indice, 10);
+		const c = ultimos[idx];
+		if (c) selecionar(c);
+	});
+
+	document.addEventListener("click", ev => {
+		if (!input.contains(ev.target) && !dropdown.contains(ev.target)) esconder();
+	});
+})();
+
 // Preview do parcelamento (crediario)
 (function () {
 	const preview = document.getElementById("parc-preview");

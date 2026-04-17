@@ -45,6 +45,10 @@ public class Produto extends EntityAudit {
 	@JoinColumn(name = "tamanho_id")
 	private Tamanho tamanho;
 
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "fornecedor_id")
+	private Fornecedor fornecedor;
+
 	@Column(nullable = false)
 	private boolean ativo = true;
 
@@ -80,6 +84,7 @@ public class Produto extends EntityAudit {
 		this.grupo = new Grupo();
 		this.subgrupo = new Subgrupo();
 		this.tamanho = new Tamanho();
+		this.fornecedor = new Fornecedor();
 		this.estoque = new Estoque();
 		this.estoque.setProduto(this);
 	}
@@ -138,6 +143,14 @@ public class Produto extends EntityAudit {
 
 	public void setTamanho(Tamanho tamanho) {
 		this.tamanho = tamanho;
+	}
+
+	public Fornecedor getFornecedor() {
+		return fornecedor;
+	}
+
+	public void setFornecedor(Fornecedor fornecedor) {
+		this.fornecedor = fornecedor;
 	}
 
 	public boolean isAtivo() {
