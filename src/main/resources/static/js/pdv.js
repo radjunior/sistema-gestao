@@ -1,10 +1,154 @@
-// Filtro de produto no select (busca por texto no select)
-// Nenhum filtro extra necessario, o select ja mostra info util.
-
 window.confirmarExclusao = function(botao) {
 	const nome = botao.getAttribute("data-nome");
 	return confirm(`Deseja realmente excluir: ${nome}?`);
-}
+};
+
+// Autocomplete de busca de produto no PDV
+(function () {
+	const input = document.getElementById("busca-produto");
+	if (!input) return;
+
+	const hiddenId = document.getElementById("produto-id-selecionado");
+	const dropdown = document.getElementById("busca-produto-dropdown");
+	const btnAdicionar = document.getElementById("btn-adicionar-item");
+	const info = document.getElementById("busca-produto-info");
+	const inputQtd = document.getElementById("input-quantidade");
+
+	let timer = null;
+	let ultimosResultados = [];
+	let indiceAtivo = -1;
+
+	function fmtBRL(v) {
+		return "R$ " + Number(v).toLocaleString("pt-BR", {
+			minimumFractionDigits: 2, maximumFractionDigits: 2
+		});
+	}
+
+	function limparSelecao() {
+		hiddenId.value = "";
+		btnAdicionar.disabled = true;
+	}
+
+	function renderizar(lista) {
+		ultimosResultados = lista;
+		indiceAtivo = -1;
+		if (!lista.length) {
+			dropdown.innerHTML = '<div class="list-group-item text-muted small">Nenhum produto encontrado.</div>';
+			dropdown.classList.remove("d-none");
+			return;
+		}
+		dropdown.innerHTML = lista.map((p, i) => {
+			const estoqueClasse = p.estoque <= 0 ? "text-danger"
+				: (p.estoque < 5 ? "text-warning" : "text-success");
+			return `
+				<button type="button" class="list-group-item list-group-item-action py-2 item-busca"
+						data-indice="${i}" data-id="${p.id}">
+					<div class="d-flex justify-content-between align-items-start">
+						<div>
+							<div class="fw-bold">${p.descricao}</div>
+							<div class="small text-muted">
+								SKU: ${p.sku || '-'}
+								${p.codigoBarra ? '| CB: ' + p.codigoBarra : ''}
+							</div>
+						</div>
+						<div class="text-end ms-2">
+							<div class="fw-bold">${fmtBRL(p.preco)}</div>
+							<div class="small ${estoqueClasse}">Estq: ${p.estoque}</div>
+						</div>
+					</div>
+				</button>`;
+		}).join("");
+		dropdown.classList.remove("d-none");
+	}
+
+	function esconder() {
+		dropdown.classList.add("d-none");
+		indiceAtivo = -1;
+	}
+
+	function selecionar(p) {
+		hiddenId.value = p.id;
+		input.value = p.descricao;
+		btnAdicionar.disabled = false;
+		const estoqueClasse = p.estoque <= 0 ? "text-danger"
+			: (p.estoque < 5 ? "text-warning" : "text-muted");
+		info.innerHTML = `<span class="${estoqueClasse}">` +
+			`Preco: ${fmtBRL(p.preco)} | Estoque: ${p.estoque}` +
+			`</span>`;
+		esconder();
+		if (inputQtd) inputQtd.focus();
+	}
+
+	async function buscar(termo) {
+		try {
+			const resp = await fetch(`/venda/pdv/buscar-produto?q=${encodeURIComponent(termo)}`);
+			if (!resp.ok) return;
+			const dados = await resp.json();
+			renderizar(dados);
+		} catch (e) {
+			console.error("Erro na busca de produto:", e);
+		}
+	}
+
+	function destacar(novo) {
+		const itens = dropdown.querySelectorAll(".item-busca");
+		itens.forEach((el, i) => el.classList.toggle("active", i === novo));
+		if (novo >= 0 && itens[novo]) itens[novo].scrollIntoView({ block: "nearest" });
+	}
+
+	input.addEventListener("input", () => {
+		limparSelecao();
+		info.innerHTML = "";
+		const termo = input.value.trim();
+		clearTimeout(timer);
+		if (termo.length < 2) {
+			esconder();
+			return;
+		}
+		timer = setTimeout(() => buscar(termo), 180);
+	});
+
+	input.addEventListener("keydown", ev => {
+		if (dropdown.classList.contains("d-none") || !ultimosResultados.length) {
+			// Enter sem dropdown: se so ha 1 match exato por codigo de barras, permite busca imediata
+			if (ev.key === "Enter" && input.value.trim().length >= 2) {
+				ev.preventDefault();
+				buscar(input.value.trim());
+			}
+			return;
+		}
+		if (ev.key === "ArrowDown") {
+			ev.preventDefault();
+			indiceAtivo = Math.min(indiceAtivo + 1, ultimosResultados.length - 1);
+			destacar(indiceAtivo);
+		} else if (ev.key === "ArrowUp") {
+			ev.preventDefault();
+			indiceAtivo = Math.max(indiceAtivo - 1, 0);
+			destacar(indiceAtivo);
+		} else if (ev.key === "Enter") {
+			ev.preventDefault();
+			const alvo = indiceAtivo >= 0 ? ultimosResultados[indiceAtivo] : ultimosResultados[0];
+			if (alvo) selecionar(alvo);
+		} else if (ev.key === "Escape") {
+			esconder();
+		}
+	});
+
+	dropdown.addEventListener("click", ev => {
+		const btn = ev.target.closest(".item-busca");
+		if (!btn) return;
+		const idx = parseInt(btn.dataset.indice, 10);
+		const p = ultimosResultados[idx];
+		if (p) selecionar(p);
+	});
+
+	// Fecha ao clicar fora
+	document.addEventListener("click", ev => {
+		if (!input.contains(ev.target) && !dropdown.contains(ev.target)) {
+			esconder();
+		}
+	});
+})();
 
 // Preview do parcelamento (crediario)
 (function () {

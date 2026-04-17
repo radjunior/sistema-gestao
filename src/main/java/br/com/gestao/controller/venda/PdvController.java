@@ -1,7 +1,9 @@
 package br.com.gestao.controller.venda;
 
 import java.math.BigDecimal;
+import java.util.List;
 
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -9,14 +11,18 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import br.com.gestao.controller.DefaultController;
 import br.com.gestao.entity.ConfiguracaoFinanceira;
+import br.com.gestao.entity.Produto;
 import br.com.gestao.entity.Venda;
 import br.com.gestao.entity.enums.FormaPagamento;
+import br.com.gestao.repository.ProdutoRepository;
 import br.com.gestao.service.ClienteService;
 import br.com.gestao.service.ConfiguracaoFinanceiraService;
+import br.com.gestao.service.ContextoUsuarioService;
 import br.com.gestao.service.ProdutoService;
 import br.com.gestao.service.VendaService;
 
@@ -26,17 +32,46 @@ public class PdvController extends DefaultController {
 
 	private static final String PAGINA = "venda/pdv";
 	private static final String REDIRECT_PDV = "redirect:/venda/pdv/";
+	public record ProdutoBuscaDTO(Long id, String descricao, String sku, String codigoBarra,
+			BigDecimal preco, Integer estoque) {
+	}
+
 	private final VendaService vendaService;
 	private final ProdutoService produtoService;
 	private final ClienteService clienteService;
 	private final ConfiguracaoFinanceiraService configuracaoFinanceiraService;
+	private final ProdutoRepository produtoRepository;
+	private final ContextoUsuarioService contextoUsuarioService;
 
 	public PdvController(VendaService vendaService, ProdutoService produtoService, ClienteService clienteService,
-			ConfiguracaoFinanceiraService configuracaoFinanceiraService) {
+			ConfiguracaoFinanceiraService configuracaoFinanceiraService,
+			ProdutoRepository produtoRepository, ContextoUsuarioService contextoUsuarioService) {
 		this.vendaService = vendaService;
 		this.produtoService = produtoService;
 		this.clienteService = clienteService;
 		this.configuracaoFinanceiraService = configuracaoFinanceiraService;
+		this.produtoRepository = produtoRepository;
+		this.contextoUsuarioService = contextoUsuarioService;
+	}
+
+	@GetMapping("/buscar-produto")
+	@ResponseBody
+	public List<ProdutoBuscaDTO> buscarProduto(@RequestParam(required = false, defaultValue = "") String q) {
+		String termo = q == null ? "" : q.trim();
+		if (termo.length() < 1) {
+			return List.of();
+		}
+		Long empresaId = contextoUsuarioService.getEmpresaIdObrigatoria();
+		List<Produto> produtos = produtoRepository.buscarAtivosPorTermo(empresaId, termo, PageRequest.of(0, 20));
+		return produtos.stream()
+				.map(p -> new ProdutoBuscaDTO(
+						p.getId(),
+						p.getDescricao(),
+						p.getSku(),
+						p.getCodigoBarra(),
+						p.getPreco(),
+						p.getEstoque() != null ? p.getEstoque().getQuantidade() : 0))
+				.toList();
 	}
 
 	@GetMapping

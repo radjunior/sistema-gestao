@@ -1,0 +1,7 @@
+#tb-estoque .input-delta {
+	text-align: center;
+}
+
+#tb-estoque tbody tr {
+	transition: background-color .15s ease-in-out;
+}

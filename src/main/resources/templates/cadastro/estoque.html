@@ -1,0 +1,130 @@
+<html lang="pt-br"
+	  xmlns:th="http://www.thymeleaf.org"
+	  layout:decorate="~{template}"
+	  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+
+<head>
+	<title>Estoque</title>
+	<link rel="stylesheet" th:href="@{/css/estoque.css}" type="text/css">
+</head>
+
+<body>
+	<div layout:fragment="conteudo">
+		<div class="container-fluid">
+
+			<div class="card mt-3">
+				<div class="card-header d-flex justify-content-between align-items-center">
+					<span><i class="bi bi-box-seam"></i> Gestao de Estoque</span>
+					<div class="btn-group btn-group-sm" role="group" aria-label="Modo">
+						<input type="radio" class="btn-check" name="modo-estoque" id="modo-individual" autocomplete="off" checked>
+						<label class="btn btn-outline-primary" for="modo-individual">Individual</label>
+						<input type="radio" class="btn-check" name="modo-estoque" id="modo-massa" autocomplete="off">
+						<label class="btn btn-outline-primary" for="modo-massa">Em Massa</label>
+					</div>
+				</div>
+
+				<div class="card-body">
+					<!-- Filtro -->
+					<div class="row g-2 mb-3">
+						<div class="col-md-6">
+							<input type="text" class="form-control" id="filtro-produto"
+								   placeholder="Buscar por descricao, SKU, codigo de barras...">
+						</div>
+						<div class="col-md-6 text-end small text-muted d-flex align-items-center justify-content-end">
+							<span id="info-modo-individual">Ajuste um produto por vez (+ entrada, - saida).</span>
+							<span id="info-modo-massa" class="d-none">
+								Marque os produtos, informe o ajuste de cada linha e clique em "Aplicar em Massa".
+							</span>
+						</div>
+					</div>
+
+					<!-- Formulario em massa envolve a tabela -->
+					<form th:action="@{/cadastro/estoque/ajuste-massa}" method="POST" id="form-massa">
+						<div class="row g-2 mb-2 d-none" id="area-massa">
+							<div class="col-md-8">
+								<input type="text" class="form-control form-control-sm" name="motivo"
+									   placeholder="Motivo (opcional): entrada de NF 1234, contagem fisica, etc.">
+							</div>
+							<div class="col-md-4 d-grid">
+								<button type="submit" class="btn btn-success btn-sm">
+									<i class="bi bi-check2-all"></i> Aplicar em Massa
+								</button>
+							</div>
+						</div>
+
+						<div class="table-responsive">
+							<table class="table table-sm table-hover align-middle" id="tb-estoque">
+								<thead class="table-light">
+									<tr>
+										<th class="col-sel d-none" style="width: 40px;">
+											<input type="checkbox" class="form-check-input" id="chk-todos">
+										</th>
+										<th style="width: 80px;">ID</th>
+										<th>Descricao</th>
+										<th>SKU</th>
+										<th class="text-center" style="width: 90px;">Atual</th>
+										<th class="text-center" style="width: 90px;">Min</th>
+										<th style="width: 260px;" class="text-center">Ajuste</th>
+										<th class="col-acao" style="width: 120px;"></th>
+									</tr>
+								</thead>
+								<tbody>
+									<tr th:each="p : ${produtos}"
+										th:data-descricao="${#strings.toLowerCase(p.descricao)}"
+										th:data-sku="${#strings.toLowerCase(p.sku != null ? p.sku : '')}"
+										th:data-codigo="${#strings.toLowerCase(p.codigoBarra != null ? p.codigoBarra : '')}"
+										th:with="qtd=${p.estoque != null ? p.estoque.quantidade : 0},
+												 minimo=${p.estoque != null ? p.estoque.estoqueMinimo : 0}">
+										<td class="col-sel d-none">
+											<input type="checkbox" class="form-check-input chk-linha">
+										</td>
+										<td th:text="${p.id}"></td>
+										<td>
+											<div th:text="${p.descricao}"></div>
+											<div class="small text-muted" th:if="${p.codigoBarra}">CB: <span th:text="${p.codigoBarra}"></span></div>
+										</td>
+										<td th:text="${p.sku}"></td>
+										<td class="text-center fw-bold"
+											th:classappend="${qtd <= 0 ? 'text-danger' : (qtd <= minimo ? 'text-warning' : 'text-success')}"
+											th:text="${qtd}"></td>
+										<td class="text-center text-muted" th:text="${minimo}"></td>
+										<td>
+											<!-- Ajuste individual (submit direto) -->
+											<form class="form-individual d-flex gap-1"
+												  th:action="@{/cadastro/estoque/ajuste}" method="POST">
+												<input type="hidden" name="produtoId" th:value="${p.id}">
+												<button type="button" class="btn btn-outline-secondary btn-sm btn-decr"
+														title="Diminuir 1">
+													<i class="bi bi-dash"></i>
+												</button>
+												<input type="number" class="form-control form-control-sm text-center input-delta"
+													   name="delta" value="0" step="1" style="max-width: 90px;">
+												<button type="button" class="btn btn-outline-secondary btn-sm btn-incr"
+														title="Aumentar 1">
+													<i class="bi bi-plus"></i>
+												</button>
+												<input type="hidden" name="motivo" class="input-motivo">
+											</form>
+
+											<!-- Campo oculto para modo massa (controlado via JS) -->
+											<input type="hidden" class="hidden-massa-id" name="produtoIds" th:value="${p.id}" disabled>
+											<input type="hidden" class="hidden-massa-delta" name="deltas" value="0" disabled>
+										</td>
+										<td class="col-acao text-end">
+											<button type="button" class="btn btn-primary btn-sm btn-aplicar-individual">
+												<i class="bi bi-check"></i> Aplicar
+											</button>
+										</td>
+									</tr>
+								</tbody>
+							</table>
+						</div>
+					</form>
+				</div>
+			</div>
+
+		</div>
+		<script type="module" th:src="@{/js/estoque.js}"></script>
+	</div>
+</body>
+</html>

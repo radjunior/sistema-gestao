@@ -60,29 +60,31 @@
 						<!-- Adicionar Item -->
 						<div class="card" th:if="${venda.status.name() == 'ABERTA'}">
 							<div class="card-header"><i class="bi bi-plus-circle"></i> Adicionar Item</div>
-							<form th:action="@{/venda/pdv/{id}/adicionar-item(id=${venda.id})}" method="POST">
+							<form th:action="@{/venda/pdv/{id}/adicionar-item(id=${venda.id})}" method="POST" id="form-adicionar-item">
 								<div class="card-body row g-3">
-									<div class="col-md-5">
+									<div class="col-md-5 position-relative">
 										<label class="form-label">Produto</label>
-										<select class="form-select" name="produtoId" id="select-produto" required>
-											<option value="">Selecione</option>
-											<option th:each="p : ${produtos}" th:if="${p.ativo}"
-													th:value="${p.id}"
-													th:text="${p.descricao + ' | R$ ' + #numbers.formatDecimal(p.preco, 1, 'POINT', 2, 'COMMA') + ' | Estq: ' + (p.estoque != null ? p.estoque.quantidade : 0)}"
-													th:data-preco="${p.preco}">
-											</option>
-										</select>
+										<input type="text" class="form-control" id="busca-produto" autocomplete="off"
+											   placeholder="Digite descricao, SKU ou codigo de barras...">
+										<input type="hidden" name="produtoId" id="produto-id-selecionado" required>
+										<div id="busca-produto-dropdown" class="list-group position-absolute w-100 shadow-sm d-none"
+											 style="z-index: 1050; max-height: 320px; overflow-y: auto;"></div>
+										<div class="form-text" id="busca-produto-info">
+											<span th:if="${venda == null}">Abra uma venda para comecar.</span>
+										</div>
 									</div>
 									<div class="col-md-2">
 										<label class="form-label">Qtd</label>
-										<input type="number" class="form-control" name="quantidade" value="1" min="1" required>
+										<input type="number" class="form-control" name="quantidade" id="input-quantidade" value="1" min="1" required>
 									</div>
 									<div class="col-md-3">
 										<label class="form-label">Desconto Item (R$)</label>
 										<input type="number" class="form-control" name="desconto" value="0" min="0" step="0.01">
 									</div>
 									<div class="col-md-2 d-flex align-items-end">
-										<button type="submit" class="btn btn-primary w-100"><i class="bi bi-plus"></i> Adicionar</button>
+										<button type="submit" class="btn btn-primary w-100" id="btn-adicionar-item" disabled>
+											<i class="bi bi-plus"></i> Adicionar
+										</button>
 									</div>
 								</div>
 							</form>
