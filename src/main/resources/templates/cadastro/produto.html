@@ -62,6 +62,13 @@
 								<option th:each="t : ${tamanhos}" th:value="${t.id}" th:text="${t.descricao}" th:selected="${produto != null and produto.tamanho != null and t.id == produto.tamanho.id}"></option>
 							</select>
 						</div>
+						<div class="col-md-3">
+							<label class="form-label">Fornecedor</label>
+							<select class="form-select" name="fornecedor.id">
+								<option value="">Selecione</option>
+								<option th:each="f : ${fornecedores}" th:value="${f.id}" th:text="${f.nome}" th:selected="${produto != null and produto.fornecedor != null and f.id == produto.fornecedor.id}"></option>
+							</select>
+						</div>
 						<div class="col-md-2">
 							<label class="form-label">Quantidade</label>
 							<input type="number" class="form-control" name="estoque.quantidade" min="0" th:value="${produto != null and produto.estoque != null ? produto.estoque.quantidade : 0}">
@@ -98,7 +105,7 @@
 						<div class="col-md-11">
 							<label class="form-label">Ativo</label>
 							<div class="form-check mt-2">
-								<input class="form-check-input" type="checkbox" name="ativo" th:checked="${produto != null and produto.ativo}">
+								<input class="form-check-input" type="checkbox" name="ativo" th:checked="${produto == null or produto.ativo}">
 							</div>
 						</div>
 						<div class="col-md-1 d-flex align-items-end justify-content-end">

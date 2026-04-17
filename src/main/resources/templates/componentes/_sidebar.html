@@ -26,6 +26,7 @@
 							<li><a class="dropdown-item" th:href="@{/cadastro/tamanho}">Tamanho</a></li>
 							<li><hr class="dropdown-divider"></li>
 							<li><a class="dropdown-item" th:href="@{/cadastro/cliente}">Cliente</a></li>
+							<li><a class="dropdown-item" th:href="@{/cadastro/fornecedor}">Fornecedor</a></li>
 						</ul>
 					</li>
 					<li class="nav-item dropdown" sec:authorize="hasAnyAuthority('ADMIN_EMPRESA', 'GERENTE', 'OPERADOR')">

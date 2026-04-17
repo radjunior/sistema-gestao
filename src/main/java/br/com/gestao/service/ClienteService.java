@@ -67,7 +67,7 @@ public class ClienteService {
 		clienteSalvo.setEmail(cliente.getEmail());
 		clienteSalvo.setEndereco(cliente.getEndereco());
 		clienteSalvo.setObservacao(cliente.getObservacao());
-		clienteSalvo.setAtivo(cliente.getAtivo() != null ? cliente.getAtivo() : true);
+		clienteSalvo.setAtivo(Boolean.TRUE.equals(cliente.getAtivo()));
 		clienteRepository.save(clienteSalvo);
 	}
 

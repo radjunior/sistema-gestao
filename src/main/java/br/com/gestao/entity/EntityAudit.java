@@ -1,6 +1,7 @@
 package br.com.gestao.entity;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -12,6 +13,8 @@ import jakarta.persistence.PreUpdate;
 
 @MappedSuperclass
 public abstract class EntityAudit {
+
+	private static final ZoneId ZONE_SP = ZoneId.of("America/Sao_Paulo");
 
 	@Column(name = "criado_em")
 	private LocalDateTime criadoEm;
@@ -27,7 +30,7 @@ public abstract class EntityAudit {
 
 	@PrePersist
 	protected void onCreate() {
-		LocalDateTime agora = LocalDateTime.now();
+		LocalDateTime agora = LocalDateTime.now(ZONE_SP);
 		Long usuarioId = getUsuarioLogado();
 
 		this.criadoEm = agora;
@@ -38,7 +41,7 @@ public abstract class EntityAudit {
 
 	@PreUpdate
 	protected void onUpdate() {
-		this.modificadoEm = LocalDateTime.now();
+		this.modificadoEm = LocalDateTime.now(ZONE_SP);
 		this.modificadoPor = getUsuarioLogado();
 	}
 

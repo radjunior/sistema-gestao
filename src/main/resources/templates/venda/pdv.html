@@ -17,12 +17,14 @@
 				<div class="card-header"><i class="bi bi-cart-plus"></i> Nova Venda</div>
 				<form th:action="@{/venda/pdv/abrir}" method="POST">
 					<div class="card-body row g-3">
-						<div class="col-md-4">
+						<div class="col-md-6 position-relative">
 							<label class="form-label">Cliente (opcional)</label>
-							<select class="form-select" name="clienteId">
-								<option value="">Consumidor final</option>
-								<option th:each="c : ${clientes}" th:value="${c.id}" th:text="${c.nome}"></option>
-							</select>
+							<input type="text" class="form-control" id="busca-cliente" autocomplete="off"
+								   placeholder="Digite nome ou CPF... (deixe em branco para consumidor final)">
+							<input type="hidden" name="clienteId" id="cliente-id-selecionado">
+							<div id="busca-cliente-dropdown" class="list-group position-absolute w-100 shadow-sm d-none"
+								 style="z-index: 1050; max-height: 320px; overflow-y: auto;"></div>
+							<div class="form-text" id="busca-cliente-info">Sem cliente = Consumidor final.</div>
 						</div>
 						<div class="col-md-2 d-flex align-items-end">
 							<button type="submit" class="btn btn-success"><i class="bi bi-bag-plus"></i> Abrir Venda</button>
@@ -75,7 +77,7 @@
 									</div>
 									<div class="col-md-2">
 										<label class="form-label">Qtd</label>
-										<input type="number" class="form-control" name="quantidade" id="input-quantidade" value="1" min="1" required>
+										<input type="text" class="form-control" name="quantidade" id="input-quantidade" inputmode="numeric" autocomplete="off" value="1" required>
 									</div>
 									<div class="col-md-3">
 										<label class="form-label">Desconto Item (R$)</label>

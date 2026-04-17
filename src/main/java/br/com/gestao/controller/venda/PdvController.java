@@ -15,10 +15,12 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import br.com.gestao.controller.DefaultController;
+import br.com.gestao.entity.Cliente;
 import br.com.gestao.entity.ConfiguracaoFinanceira;
 import br.com.gestao.entity.Produto;
 import br.com.gestao.entity.Venda;
 import br.com.gestao.entity.enums.FormaPagamento;
+import br.com.gestao.repository.ClienteRepository;
 import br.com.gestao.repository.ProdutoRepository;
 import br.com.gestao.service.ClienteService;
 import br.com.gestao.service.ConfiguracaoFinanceiraService;
@@ -36,22 +38,44 @@ public class PdvController extends DefaultController {
 			BigDecimal preco, Integer estoque) {
 	}
 
+	public record ClienteBuscaDTO(Long id, String nome, String cpf, String telefone) {
+	}
+
 	private final VendaService vendaService;
 	private final ProdutoService produtoService;
 	private final ClienteService clienteService;
 	private final ConfiguracaoFinanceiraService configuracaoFinanceiraService;
 	private final ProdutoRepository produtoRepository;
+	private final ClienteRepository clienteRepository;
 	private final ContextoUsuarioService contextoUsuarioService;
 
 	public PdvController(VendaService vendaService, ProdutoService produtoService, ClienteService clienteService,
 			ConfiguracaoFinanceiraService configuracaoFinanceiraService,
-			ProdutoRepository produtoRepository, ContextoUsuarioService contextoUsuarioService) {
+			ProdutoRepository produtoRepository, ClienteRepository clienteRepository,
+			ContextoUsuarioService contextoUsuarioService) {
 		this.vendaService = vendaService;
 		this.produtoService = produtoService;
 		this.clienteService = clienteService;
 		this.configuracaoFinanceiraService = configuracaoFinanceiraService;
 		this.produtoRepository = produtoRepository;
+		this.clienteRepository = clienteRepository;
 		this.contextoUsuarioService = contextoUsuarioService;
+	}
+
+	@GetMapping("/buscar-cliente")
+	@ResponseBody
+	public List<ClienteBuscaDTO> buscarCliente(@RequestParam(required = false, defaultValue = "") String q) {
+		String termo = q == null ? "" : q.trim();
+		if (termo.length() < 1) {
+			return List.of();
+		}
+		Long empresaId = contextoUsuarioService.getEmpresaIdObrigatoria();
+		String termoBusca = termo.replaceAll("[.\\-/]", "");
+		List<Cliente> clientes = clienteRepository.buscarAtivosPorTermo(empresaId, termoBusca,
+				PageRequest.of(0, 20));
+		return clientes.stream()
+				.map(c -> new ClienteBuscaDTO(c.getId(), c.getNome(), c.getCpf(), c.getTelefone()))
+				.toList();
 	}
 
 	@GetMapping("/buscar-produto")

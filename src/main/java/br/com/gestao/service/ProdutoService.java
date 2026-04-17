@@ -7,11 +7,13 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 
 import br.com.gestao.entity.Estoque;
+import br.com.gestao.entity.Fornecedor;
 import br.com.gestao.entity.Grupo;
 import br.com.gestao.entity.Marca;
 import br.com.gestao.entity.Produto;
 import br.com.gestao.entity.Subgrupo;
 import br.com.gestao.entity.Tamanho;
+import br.com.gestao.repository.FornecedorRepository;
 import br.com.gestao.repository.GrupoRepository;
 import br.com.gestao.repository.MarcaRepository;
 import br.com.gestao.repository.ProdutoRepository;
@@ -29,16 +31,19 @@ public class ProdutoService {
 	private final GrupoRepository grupoRepository;
 	private final SubgrupoRepository subgrupoRepository;
 	private final TamanhoRepository tamanhoRepository;
+	private final FornecedorRepository fornecedorRepository;
 	private final ContextoUsuarioService contextoUsuarioService;
 
 	public ProdutoService(ProdutoRepository produtoRepository, MarcaRepository marcaRepository,
 			GrupoRepository grupoRepository, SubgrupoRepository subgrupoRepository, TamanhoRepository tamanhoRepository,
+			FornecedorRepository fornecedorRepository,
 			ContextoUsuarioService contextoUsuarioService) {
 		this.produtoRepository = produtoRepository;
 		this.marcaRepository = marcaRepository;
 		this.grupoRepository = grupoRepository;
 		this.subgrupoRepository = subgrupoRepository;
 		this.tamanhoRepository = tamanhoRepository;
+		this.fornecedorRepository = fornecedorRepository;
 		this.contextoUsuarioService = contextoUsuarioService;
 	}
 
@@ -82,6 +87,7 @@ public class ProdutoService {
 		entidade.setGrupo(buscarGrupoDaEmpresa(produto.getGrupo(), empresaId));
 		entidade.setSubgrupo(buscarSubgrupoDaEmpresa(produto.getSubgrupo(), empresaId));
 		entidade.setTamanho(buscarTamanhoDaEmpresa(produto.getTamanho(), empresaId));
+		entidade.setFornecedor(buscarFornecedorDaEmpresa(produto.getFornecedor(), empresaId));
 
 		definirPrecoEMargem(entidade, produto.getPreco(), produto.getMargem());
 		validarRelacionamentos(entidade);
@@ -236,6 +242,14 @@ public class ProdutoService {
 		}
 		return tamanhoRepository.findByIdAndEmpresaId(tamanho.getId(), empresaId)
 				.orElseThrow(() -> new EntityNotFoundException("Tamanho nao encontrado."));
+	}
+
+	private Fornecedor buscarFornecedorDaEmpresa(Fornecedor fornecedor, Long empresaId) {
+		if (fornecedor == null || fornecedor.getId() == null) {
+			return null;
+		}
+		return fornecedorRepository.findByIdAndEmpresaId(fornecedor.getId(), empresaId)
+				.orElseThrow(() -> new EntityNotFoundException("Fornecedor nao encontrado."));
 	}
 
 	private BigDecimal calcularPreco(BigDecimal custo, BigDecimal margem) {

@@ -41,11 +41,21 @@
 					<!-- Formulario em massa envolve a tabela -->
 					<form th:action="@{/cadastro/estoque/ajuste-massa}" method="POST" id="form-massa">
 						<div class="row g-2 mb-2 d-none" id="area-massa">
-							<div class="col-md-8">
+							<div class="col-md-3">
+								<select class="form-select form-select-sm" name="tipoMovimento" id="tipo-movimento">
+									<option value="ENTRADA">Entrada (+)</option>
+									<option value="SAIDA">Saida (-)</option>
+								</select>
+							</div>
+							<div class="col-md-2">
+								<input type="number" class="form-control form-control-sm" name="valorMassa"
+									   id="valor-massa" min="1" step="1" placeholder="Qtd">
+							</div>
+							<div class="col-md-4">
 								<input type="text" class="form-control form-control-sm" name="motivo"
 									   placeholder="Motivo (opcional): entrada de NF 1234, contagem fisica, etc.">
 							</div>
-							<div class="col-md-4 d-grid">
+							<div class="col-md-3 d-grid">
 								<button type="submit" class="btn btn-success btn-sm">
 									<i class="bi bi-check2-all"></i> Aplicar em Massa
 								</button>
