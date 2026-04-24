@@ -1,0 +1,166 @@
+<html lang="pt-br"
+	  xmlns:th="http://www.thymeleaf.org"
+	  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	  layout:decorate="~{template}">
+
+<head>
+	<title>Contas a Pagar - Fornecedor</title>
+	<link rel="stylesheet" th:href="@{/css/contas-pagar.css}" type="text/css">
+</head>
+
+<body>
+	<div layout:fragment="conteudo">
+		<div class="container-fluid">
+			<div class="card mt-3">
+				<div class="card-header d-flex justify-content-between align-items-center">
+					<span>
+						<i class="bi bi-truck"></i>
+						<span th:text="${fornecedor.nome}"></span>
+					</span>
+					<div>
+						<form th:action="@{/financeiro/contas-pagar/recalcular-fornecedor}" method="post" style="display:inline;">
+							<input type="hidden" name="fornecedorId" th:value="${fornecedor.id}">
+							<button type="submit" class="btn btn-sm btn-outline-warning">
+								<i class="bi bi-arrow-clockwise"></i> Recalcular juros do fornecedor
+							</button>
+						</form>
+						<a th:href="@{/financeiro/contas-pagar}" class="btn btn-sm btn-secondary">
+							<i class="bi bi-arrow-left"></i> Voltar
+						</a>
+					</div>
+				</div>
+				<div class="card-body">
+					<table class="table">
+						<thead>
+							<tr>
+								<th>Descricao</th>
+								<th>Documento</th>
+								<th>Parcela</th>
+								<th>Vencimento</th>
+								<th>Dias Atraso</th>
+								<th class="text-end">Valor Nominal</th>
+								<th class="text-end">Juros</th>
+								<th class="text-end">Multa</th>
+								<th class="text-end">Total</th>
+								<th>Status</th>
+								<th></th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr th:each="t : ${titulos}"
+								th:classappend="${t.status.name() == 'PAGO'} ? 'table-success' :
+												(${t.status.name() == 'VENCIDO'} ? 'table-danger' :
+												 (${t.status.name() == 'PENDENTE'} ? 'table-warning' : ''))">
+								<td th:text="${t.descricao}"></td>
+								<td th:text="${t.documento != null ? t.documento : '-'}"></td>
+								<td th:text="${t.numeroParcela + '/' + t.totalParcelas}"></td>
+								<td th:text="${#temporals.format(t.dataVencimento, 'dd/MM/yyyy')}"></td>
+								<td>
+									<span th:if="${t.status.name() != 'PAGO' and t.dataVencimento.isBefore(hoje)}"
+										  class="text-danger fw-bold"
+										  th:text="${T(java.time.temporal.ChronoUnit).DAYS.between(t.dataVencimento, hoje) + ' dias'}"></span>
+									<span th:unless="${t.status.name() != 'PAGO' and t.dataVencimento.isBefore(hoje)}">-</span>
+								</td>
+								<td class="text-end" th:text="${'R$ ' + #numbers.formatDecimal(t.valorNominal, 1, 'POINT', 2, 'COMMA')}"></td>
+								<td class="text-end" th:text="${'R$ ' + #numbers.formatDecimal(t.jurosAplicados, 1, 'POINT', 2, 'COMMA')}"></td>
+								<td class="text-end" th:text="${'R$ ' + #numbers.formatDecimal(t.multaAplicada, 1, 'POINT', 2, 'COMMA')}"></td>
+								<td class="text-end fw-bold" th:text="${'R$ ' + #numbers.formatDecimal(t.valorTotalAtualizado, 1, 'POINT', 2, 'COMMA')}"></td>
+								<td>
+									<span th:switch="${t.status.name()}">
+										<span th:case="'PAGO'" class="badge bg-success" th:text="${t.status.descricao}"></span>
+										<span th:case="'VENCIDO'" class="badge bg-danger" th:text="${t.status.descricao}"></span>
+										<span th:case="'PENDENTE'" class="badge bg-warning text-dark" th:text="${t.status.descricao}"></span>
+										<span th:case="*" class="badge bg-secondary" th:text="${t.status.descricao}"></span>
+									</span>
+								</td>
+								<td class="text-nowrap">
+									<button th:if="${t.status.name() != 'PAGO' and t.status.name() != 'CANCELADO'}"
+											type="button" class="btn btn-sm btn-success btn-quitar"
+											th:attr="data-id=${t.id},
+													 data-numero=${t.numeroParcela},
+													 data-total=${t.totalParcelas},
+													 data-nominal=${t.valorNominal},
+													 data-juros=${t.jurosAplicados},
+													 data-multa=${t.multaAplicada},
+													 data-totalatualizado=${t.valorTotalAtualizado}">
+										<i class="bi bi-cash"></i> Pagar
+									</button>
+									<form th:if="${t.status.name() != 'PAGO' and t.status.name() != 'CANCELADO'}"
+										  th:action="@{/financeiro/contas-pagar/recalcular-titulo}" method="post" style="display:inline;">
+										<input type="hidden" name="tituloId" th:value="${t.id}">
+										<button type="submit" class="btn btn-sm btn-outline-warning" title="Recalcular juros">
+											<i class="bi bi-arrow-clockwise"></i>
+										</button>
+									</form>
+								</td>
+							</tr>
+							<tr th:if="${#lists.isEmpty(titulos)}">
+								<td colspan="11" class="text-center text-muted">Nenhum titulo para este fornecedor.</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+			</div>
+		</div>
+
+		<!-- Modal Quitacao -->
+		<div class="modal fade" id="modal-quitar" tabindex="-1" aria-hidden="true">
+			<div class="modal-dialog modal-dialog-centered">
+				<form th:action="@{/financeiro/contas-pagar/quitar}" method="post" class="modal-content">
+					<div class="modal-header">
+						<h5 class="modal-title">Pagar Titulo <span id="mq-info"></span></h5>
+						<button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+					</div>
+					<div class="modal-body">
+						<input type="hidden" name="tituloId" id="mq-titulo-id">
+						<div class="row g-2">
+							<div class="col-6">
+								<label class="form-label">Valor Nominal</label>
+								<input type="text" id="mq-nominal" class="form-control" readonly>
+							</div>
+							<div class="col-6">
+								<label class="form-label">Juros</label>
+								<input type="text" id="mq-juros" class="form-control" readonly>
+							</div>
+							<div class="col-6">
+								<label class="form-label">Multa</label>
+								<input type="text" id="mq-multa" class="form-control" readonly>
+							</div>
+							<div class="col-6">
+								<label class="form-label">Total a Pagar</label>
+								<input type="text" id="mq-total" class="form-control fw-bold" readonly>
+							</div>
+							<div class="col-6">
+								<label class="form-label">Valor Pago *</label>
+								<input type="number" name="valorPago" id="mq-valor-pago" class="form-control" step="0.01" min="0.01" required>
+							</div>
+							<div class="col-6">
+								<label class="form-label">Data do Pagamento *</label>
+								<input type="date" name="dataPagamento" id="mq-data" class="form-control" required th:value="${hoje}">
+							</div>
+							<div class="col-12">
+								<label class="form-label">Forma de Pagamento *</label>
+								<select name="formaPagamento" class="form-select" required>
+									<option value="">Selecione...</option>
+									<option th:each="f : ${formasPagamento}" th:if="${f.name() != 'PARCELADO'}"
+											th:value="${f.name()}" th:text="${f.descricao}"></option>
+								</select>
+							</div>
+							<div class="col-12">
+								<label class="form-label">Observacao</label>
+								<textarea name="observacao" class="form-control" rows="2" maxlength="500"></textarea>
+							</div>
+						</div>
+					</div>
+					<div class="modal-footer">
+						<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+						<button type="submit" class="btn btn-success"><i class="bi bi-check2"></i> Confirmar Pagamento</button>
+					</div>
+				</form>
+			</div>
+		</div>
+
+		<script type="module" th:src="@{/js/contas-pagar-fornecedor.js}"></script>
+	</div>
+</body>
+</html>
