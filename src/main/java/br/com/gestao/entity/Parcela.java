@@ -18,7 +18,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 
 @Entity
-public class Parcela extends EntityAudit {
+public class Parcela extends EntityAudit implements TituloEncargos {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)

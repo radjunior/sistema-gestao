@@ -11,7 +11,7 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 
 import br.com.gestao.entity.ConfiguracaoFinanceira;
-import br.com.gestao.entity.Parcela;
+import br.com.gestao.entity.TituloEncargos;
 
 /**
  * Servico puro de calculo: Price, juros e multa.
@@ -87,24 +87,24 @@ public class CalculoFinanceiroService {
 	 * Atualiza in-place jurosAplicados, multaAplicada e multaCobrada.
 	 * Retorna {jurosCalculado, multaCalculada}.
 	 */
-	public BigDecimal[] calcularEncargos(Parcela parcela, ConfiguracaoFinanceira config, LocalDate referencia) {
-		if (parcela == null || parcela.getDataVencimento() == null) {
+	public BigDecimal[] calcularEncargos(TituloEncargos titulo, ConfiguracaoFinanceira config, LocalDate referencia) {
+		if (titulo == null || titulo.getDataVencimento() == null) {
 			return new BigDecimal[] { BigDecimal.ZERO, BigDecimal.ZERO };
 		}
 		int carencia = config.getCarenciaDias() != null ? config.getCarenciaDias() : 0;
-		long diasAtraso = ChronoUnit.DAYS.between(parcela.getDataVencimento(), referencia);
+		long diasAtraso = ChronoUnit.DAYS.between(titulo.getDataVencimento(), referencia);
 		long diasEfetivos = diasAtraso - carencia;
 
 		if (diasEfetivos <= 0) {
-			parcela.setJurosAplicados(BigDecimal.ZERO);
-			if (!parcela.isMultaCobrada()) {
-				parcela.setMultaAplicada(BigDecimal.ZERO);
+			titulo.setJurosAplicados(BigDecimal.ZERO);
+			if (!titulo.isMultaCobrada()) {
+				titulo.setMultaAplicada(BigDecimal.ZERO);
 			}
-			return new BigDecimal[] { BigDecimal.ZERO, parcela.getMultaAplicada() };
+			return new BigDecimal[] { BigDecimal.ZERO, titulo.getMultaAplicada() };
 		}
 
 		BigDecimal taxa = config.getTaxaJurosMensal().divide(BigDecimal.valueOf(100), MC);
-		BigDecimal valorBase = parcela.getValorNominal();
+		BigDecimal valorBase = titulo.getValorNominal();
 		BigDecimal juros;
 
 		if (config.isJurosCompostos()) {
@@ -119,14 +119,14 @@ public class CalculoFinanceiroService {
 		if (juros.signum() < 0) {
 			juros = BigDecimal.ZERO;
 		}
-		parcela.setJurosAplicados(juros);
+		titulo.setJurosAplicados(juros);
 
-		BigDecimal multa = parcela.getMultaAplicada() != null ? parcela.getMultaAplicada() : BigDecimal.ZERO;
-		if (!parcela.isMultaCobrada()) {
+		BigDecimal multa = titulo.getMultaAplicada() != null ? titulo.getMultaAplicada() : BigDecimal.ZERO;
+		if (!titulo.isMultaCobrada()) {
 			BigDecimal percMulta = config.getMultaAtrasoPercentual().divide(BigDecimal.valueOf(100), MC);
 			multa = valorBase.multiply(percMulta).setScale(2, RoundingMode.HALF_UP);
-			parcela.setMultaAplicada(multa);
-			parcela.setMultaCobrada(true);
+			titulo.setMultaAplicada(multa);
+			titulo.setMultaCobrada(true);
 		}
 
 		return new BigDecimal[] { juros, multa };
