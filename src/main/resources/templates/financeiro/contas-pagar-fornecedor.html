@@ -74,6 +74,11 @@
 									</span>
 								</td>
 								<td class="text-nowrap">
+									<a th:if="${t.status.name() != 'PAGO'}"
+									   th:href="@{/financeiro/contas-pagar/editar/{id}(id=${t.id})}"
+									   class="btn btn-sm btn-outline-primary" title="Editar">
+										<i class="bi bi-pencil"></i>
+									</a>
 									<button th:if="${t.status.name() != 'PAGO' and t.status.name() != 'CANCELADO'}"
 											type="button" class="btn btn-sm btn-success btn-quitar"
 											th:attr="data-id=${t.id},

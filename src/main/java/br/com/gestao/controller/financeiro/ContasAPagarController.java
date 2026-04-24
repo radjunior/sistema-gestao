@@ -13,6 +13,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import br.com.gestao.controller.DefaultController;
 import br.com.gestao.entity.TituloAPagar;
+import br.com.gestao.entity.enums.CategoriaDespesa;
 import br.com.gestao.entity.enums.FormaPagamento;
 import br.com.gestao.entity.enums.StatusParcela;
 import br.com.gestao.repository.FornecedorRepository;
@@ -25,6 +26,7 @@ public class ContasAPagarController extends DefaultController {
 
 	private static final String PAGINA_LISTA = "financeiro/contas-pagar";
 	private static final String PAGINA_FORNECEDOR = "financeiro/contas-pagar-fornecedor";
+	private static final String PAGINA_FORM = "financeiro/contas-pagar-form";
 
 	private final ContasAPagarService contasAPagarService;
 	private final FornecedorRepository fornecedorRepository;
@@ -70,6 +72,78 @@ public class ContasAPagarController extends DefaultController {
 		model.addAttribute("formasPagamento", FormaPagamento.values());
 		model.addAttribute("hoje", LocalDate.now());
 		return PAGINA_FORNECEDOR;
+	}
+
+	@GetMapping("/novo")
+	public String novo(Model model) {
+		Long empresaId = contextoUsuarioService.getEmpresaIdObrigatoria();
+		model.addAttribute("titulo", null);
+		model.addAttribute("fornecedores", fornecedorRepository.findAllByEmpresaIdOrderByNomeAsc(empresaId));
+		model.addAttribute("categorias", CategoriaDespesa.values());
+		model.addAttribute("hoje", LocalDate.now());
+		return PAGINA_FORM;
+	}
+
+	@GetMapping("/editar/{id}")
+	public String editar(Model model, @PathVariable Long id, RedirectAttributes redirectAttributes) {
+		try {
+			TituloAPagar titulo = contasAPagarService.consultarPorId(id);
+			if (titulo.getStatus() == StatusParcela.PAGO) {
+				showError(redirectAttributes, "Título já pago não pode ser editado.");
+				return "redirect:/financeiro/contas-pagar";
+			}
+			Long empresaId = contextoUsuarioService.getEmpresaIdObrigatoria();
+			model.addAttribute("titulo", titulo);
+			model.addAttribute("fornecedores", fornecedorRepository.findAllByEmpresaIdOrderByNomeAsc(empresaId));
+			model.addAttribute("categorias", CategoriaDespesa.values());
+			model.addAttribute("hoje", LocalDate.now());
+			return PAGINA_FORM;
+		} catch (Exception e) {
+			showError(redirectAttributes, e.getMessage());
+			return "redirect:/financeiro/contas-pagar";
+		}
+	}
+
+	@PostMapping("/salvar")
+	public String salvar(RedirectAttributes redirectAttributes,
+			@RequestParam(required = false) Long id,
+			ContasAPagarService.TituloForm form) {
+		try {
+			if (id != null) {
+				TituloAPagar atualizado = contasAPagarService.atualizar(id, form);
+				showSucesso(redirectAttributes, "Título atualizado com sucesso!");
+				Long fornId = atualizado.getFornecedor() != null ? atualizado.getFornecedor().getId() : null;
+				return fornId != null
+						? "redirect:/financeiro/contas-pagar/fornecedor/" + fornId
+						: "redirect:/financeiro/contas-pagar";
+			}
+			contasAPagarService.cadastrar(form);
+			showSucesso(redirectAttributes, "Título(s) cadastrado(s) com sucesso!");
+			return form.getFornecedorId() != null
+					? "redirect:/financeiro/contas-pagar/fornecedor/" + form.getFornecedorId()
+					: "redirect:/financeiro/contas-pagar";
+		} catch (Exception e) {
+			showError(redirectAttributes, e.getMessage());
+			return id != null
+					? "redirect:/financeiro/contas-pagar/editar/" + id
+					: "redirect:/financeiro/contas-pagar/novo";
+		}
+	}
+
+	@PostMapping("/excluir/{id}")
+	public String excluir(RedirectAttributes redirectAttributes, @PathVariable Long id) {
+		try {
+			TituloAPagar titulo = contasAPagarService.consultarPorId(id);
+			Long fornId = titulo.getFornecedor() != null ? titulo.getFornecedor().getId() : null;
+			contasAPagarService.excluir(id);
+			showSucesso(redirectAttributes, "Título excluído com sucesso!");
+			return fornId != null
+					? "redirect:/financeiro/contas-pagar/fornecedor/" + fornId
+					: "redirect:/financeiro/contas-pagar";
+		} catch (Exception e) {
+			showError(redirectAttributes, e.getMessage());
+			return "redirect:/financeiro/contas-pagar";
+		}
 	}
 
 	@PostMapping("/quitar")
