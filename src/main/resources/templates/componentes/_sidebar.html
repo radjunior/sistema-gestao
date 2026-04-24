@@ -40,6 +40,7 @@
 						<a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi bi-cash-coin"></i> Financeiro</a>
 						<ul class="dropdown-menu">
 							<li><a class="dropdown-item" th:href="@{/financeiro/contas-receber}">Contas a Receber</a></li>
+							<li><a class="dropdown-item" th:href="@{/financeiro/contas-pagar}">Contas a Pagar</a></li>
 							<li sec:authorize="hasAnyAuthority('ADMIN_EMPRESA', 'GERENTE')"><hr class="dropdown-divider"></li>
 							<li sec:authorize="hasAnyAuthority('ADMIN_EMPRESA', 'GERENTE')"><a class="dropdown-item" th:href="@{/financeiro/configuracao}">Configuracao</a></li>
 						</ul>
