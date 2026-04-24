@@ -1,0 +1,177 @@
+<html lang="pt-br"
+	  xmlns:th="http://www.thymeleaf.org"
+	  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	  layout:decorate="~{template}">
+
+<head>
+	<title>Contas a Pagar</title>
+	<link rel="stylesheet" th:href="@{/css/contas-pagar.css}" type="text/css">
+</head>
+
+<body>
+	<div layout:fragment="conteudo">
+		<div class="container-fluid">
+
+			<div class="row g-3 mt-1">
+				<div class="col-md-3">
+					<div class="card kpi-card border-primary">
+						<div class="card-body">
+							<div class="kpi-label">Total a Pagar</div>
+							<div class="kpi-value text-primary"
+								 th:text="${'R$ ' + #numbers.formatDecimal(indicadores.totalAPagar, 1, 'POINT', 2, 'COMMA')}"></div>
+						</div>
+					</div>
+				</div>
+				<div class="col-md-3">
+					<div class="card kpi-card border-danger">
+						<div class="card-body">
+							<div class="kpi-label">Total Vencido</div>
+							<div class="kpi-value text-danger"
+								 th:text="${'R$ ' + #numbers.formatDecimal(indicadores.totalVencido, 1, 'POINT', 2, 'COMMA')}"></div>
+						</div>
+					</div>
+				</div>
+				<div class="col-md-3">
+					<div class="card kpi-card border-success">
+						<div class="card-body">
+							<div class="kpi-label">Pagamentos do Mes</div>
+							<div class="kpi-value text-success"
+								 th:text="${'R$ ' + #numbers.formatDecimal(indicadores.pagamentosMes, 1, 'POINT', 2, 'COMMA')}"></div>
+						</div>
+					</div>
+				</div>
+				<div class="col-md-3">
+					<div class="card kpi-card border-warning">
+						<div class="card-body">
+							<div class="kpi-label">Fornecedores em Atraso</div>
+							<div class="kpi-value text-warning" th:text="${indicadores.fornecedoresEmAtraso}"></div>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<div class="card mt-3">
+				<div class="card-header">Filtros</div>
+				<form th:action="@{/financeiro/contas-pagar}" method="get" class="card-body row g-3">
+					<div class="col-md-3">
+						<label class="form-label">Status</label>
+						<select class="form-select" name="status">
+							<option value="">Todos</option>
+							<option th:each="s : ${statusDisponiveis}" th:value="${s.name()}"
+									th:text="${s.descricao}"
+									th:selected="${statusFiltro != null and statusFiltro.name() == s.name()}"></option>
+						</select>
+					</div>
+					<div class="col-md-2">
+						<label class="form-label">Vencimento de</label>
+						<input type="date" name="inicio" class="form-control" th:value="${inicioFiltro}">
+					</div>
+					<div class="col-md-2">
+						<label class="form-label">Ate</label>
+						<input type="date" name="fim" class="form-control" th:value="${fimFiltro}">
+					</div>
+					<div class="col-md-3">
+						<label class="form-label">Fornecedor</label>
+						<select class="form-select" name="fornecedorId">
+							<option value="">Todos</option>
+							<option th:each="f : ${fornecedores}" th:value="${f.id}" th:text="${f.nome}"
+									th:selected="${fornecedorIdFiltro != null and fornecedorIdFiltro == f.id}"></option>
+						</select>
+					</div>
+					<div class="col-md-2 d-flex align-items-end">
+						<button type="submit" class="btn btn-primary w-100"><i class="bi bi-search"></i> Filtrar</button>
+					</div>
+				</form>
+			</div>
+
+			<div class="card mt-3" th:if="${titulosFiltrados != null}">
+				<div class="card-header">Resultado do Filtro</div>
+				<div class="card-body">
+					<table class="table table-sm">
+						<thead>
+							<tr>
+								<th>Fornecedor</th>
+								<th>Descricao</th>
+								<th>Documento</th>
+								<th>Parcela</th>
+								<th>Vencimento</th>
+								<th class="text-end">Valor Nominal</th>
+								<th class="text-end">Encargos</th>
+								<th class="text-end">Total Atualizado</th>
+								<th>Status</th>
+								<th></th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr th:each="t : ${titulosFiltrados}">
+								<td th:text="${t.fornecedor != null ? t.fornecedor.nome : '-'}"></td>
+								<td th:text="${t.descricao}"></td>
+								<td th:text="${t.documento != null ? t.documento : '-'}"></td>
+								<td th:text="${t.numeroParcela + '/' + t.totalParcelas}"></td>
+								<td th:text="${#temporals.format(t.dataVencimento, 'dd/MM/yyyy')}"></td>
+								<td class="text-end" th:text="${'R$ ' + #numbers.formatDecimal(t.valorNominal, 1, 'POINT', 2, 'COMMA')}"></td>
+								<td class="text-end" th:text="${'R$ ' + #numbers.formatDecimal(t.jurosAplicados.add(t.multaAplicada), 1, 'POINT', 2, 'COMMA')}"></td>
+								<td class="text-end" th:text="${'R$ ' + #numbers.formatDecimal(t.valorTotalAtualizado, 1, 'POINT', 2, 'COMMA')}"></td>
+								<td>
+									<span th:switch="${t.status.name()}">
+										<span th:case="'PAGO'" class="badge bg-success" th:text="${t.status.descricao}"></span>
+										<span th:case="'VENCIDO'" class="badge bg-danger" th:text="${t.status.descricao}"></span>
+										<span th:case="'PENDENTE'" class="badge bg-warning text-dark" th:text="${t.status.descricao}"></span>
+										<span th:case="*" class="badge bg-secondary" th:text="${t.status.descricao}"></span>
+									</span>
+								</td>
+								<td>
+									<a th:if="${t.fornecedor != null}"
+									   th:href="@{/financeiro/contas-pagar/fornecedor/{id}(id=${t.fornecedor.id})}" class="btn btn-sm btn-outline-primary">
+										<i class="bi bi-eye"></i>
+									</a>
+								</td>
+							</tr>
+							<tr th:if="${#lists.isEmpty(titulosFiltrados)}">
+								<td colspan="10" class="text-center text-muted">Nenhum titulo encontrado com os filtros.</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+			</div>
+
+			<div class="card mt-3">
+				<div class="card-header">Fornecedores com Titulos em Aberto</div>
+				<div class="card-body">
+					<table class="table">
+						<thead>
+							<tr>
+								<th>Fornecedor</th>
+								<th class="text-end">Total em Aberto</th>
+								<th class="text-center">Titulos Vencidos</th>
+								<th>Proximo Vencimento</th>
+								<th></th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr th:each="c : ${resumoCredores}"
+								th:classappend="${c.qtdVencidas != null and c.qtdVencidas > 0} ? 'table-danger' : ''">
+								<td th:text="${c.nomeFornecedor}"></td>
+								<td class="text-end" th:text="${'R$ ' + #numbers.formatDecimal(c.totalAberto, 1, 'POINT', 2, 'COMMA')}"></td>
+								<td class="text-center">
+									<span th:if="${c.qtdVencidas > 0}" class="badge bg-danger" th:text="${c.qtdVencidas}"></span>
+									<span th:unless="${c.qtdVencidas > 0}" class="badge bg-success">0</span>
+								</td>
+								<td th:text="${c.proximoVencimento != null ? #temporals.format(c.proximoVencimento, 'dd/MM/yyyy') : '-'}"></td>
+								<td>
+									<a th:href="@{/financeiro/contas-pagar/fornecedor/{id}(id=${c.fornecedorId})}" class="btn btn-sm btn-primary">
+										<i class="bi bi-eye"></i> Detalhes
+									</a>
+								</td>
+							</tr>
+							<tr th:if="${#lists.isEmpty(resumoCredores)}">
+								<td colspan="5" class="text-center text-muted">Nenhum fornecedor com titulo em aberto.</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+			</div>
+		</div>
+	</div>
+</body>
+</html>
