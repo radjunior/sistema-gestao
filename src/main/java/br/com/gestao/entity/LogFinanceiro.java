@@ -33,6 +33,12 @@ public class LogFinanceiro {
 	@Column(name = "cliente_id")
 	private Long clienteId;
 
+	@Column(name = "titulo_a_pagar_id")
+	private Long tituloAPagarId;
+
+	@Column(name = "fornecedor_id")
+	private Long fornecedorId;
+
 	@Column(name = "usuario_id")
 	private Long usuarioId;
 
@@ -71,6 +77,10 @@ public class LogFinanceiro {
 	public void setVendaId(Long vendaId) { this.vendaId = vendaId; }
 	public Long getClienteId() { return clienteId; }
 	public void setClienteId(Long clienteId) { this.clienteId = clienteId; }
+	public Long getTituloAPagarId() { return tituloAPagarId; }
+	public void setTituloAPagarId(Long tituloAPagarId) { this.tituloAPagarId = tituloAPagarId; }
+	public Long getFornecedorId() { return fornecedorId; }
+	public void setFornecedorId(Long fornecedorId) { this.fornecedorId = fornecedorId; }
 	public Long getUsuarioId() { return usuarioId; }
 	public void setUsuarioId(Long usuarioId) { this.usuarioId = usuarioId; }
 	public String getUsuarioNome() { return usuarioNome; }
