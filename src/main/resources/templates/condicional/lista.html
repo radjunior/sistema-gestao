@@ -79,6 +79,36 @@
 			</div>
 
 			<div class="card mt-3">
+				<div class="card-header">Linhas do tempo</div>
+				<div class="card-body row g-3">
+					<div class="col-md-6">
+						<label class="form-label">Histórico por cliente</label>
+						<div class="input-group">
+							<select class="form-select" id="timeline-cliente-select">
+								<option value="">Selecione um cliente...</option>
+								<option th:each="c : ${clientes}" th:value="${c.id}" th:text="${c.nome}"></option>
+							</select>
+							<button type="button" class="btn btn-outline-primary" id="btn-timeline-cliente">
+								<i class="bi bi-clock-history"></i> Ver
+							</button>
+						</div>
+					</div>
+					<div class="col-md-6">
+						<label class="form-label">Histórico por produto</label>
+						<div class="input-group">
+							<select class="form-select" id="timeline-produto-select">
+								<option value="">Selecione um produto...</option>
+								<option th:each="p : ${produtos}" th:value="${p.id}" th:text="${p.descricao}"></option>
+							</select>
+							<button type="button" class="btn btn-outline-primary" id="btn-timeline-produto">
+								<i class="bi bi-clock-history"></i> Ver
+							</button>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<div class="card mt-3">
 				<div class="card-header">Condicionais</div>
 				<div class="card-body">
 					<table class="table table-sm align-middle">
@@ -125,6 +155,19 @@
 				</div>
 			</div>
 		</div>
+
+		<script>
+			(function () {
+				document.getElementById('btn-timeline-cliente').addEventListener('click', function () {
+					var id = document.getElementById('timeline-cliente-select').value;
+					if (id) { window.location.href = '/condicionais/cliente/' + id; }
+				});
+				document.getElementById('btn-timeline-produto').addEventListener('click', function () {
+					var id = document.getElementById('timeline-produto-select').value;
+					if (id) { window.location.href = '/condicionais/produto/' + id; }
+				});
+			})();
+		</script>
 	</div>
 </body>
 </html>

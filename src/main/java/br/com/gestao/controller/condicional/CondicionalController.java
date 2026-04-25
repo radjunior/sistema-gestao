@@ -15,8 +15,11 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import br.com.gestao.controller.DefaultController;
+import br.com.gestao.entity.Cliente;
 import br.com.gestao.entity.Condicional;
+import br.com.gestao.entity.Produto;
 import br.com.gestao.entity.Venda;
+import jakarta.persistence.EntityNotFoundException;
 import br.com.gestao.entity.enums.StatusCondicional;
 import br.com.gestao.repository.ClienteRepository;
 import br.com.gestao.repository.ProdutoRepository;
@@ -33,6 +36,8 @@ public class CondicionalController extends DefaultController {
 	private static final String PAGINA_LISTA = "condicional/lista";
 	private static final String PAGINA_FORM = "condicional/form";
 	private static final String PAGINA_DETALHE = "condicional/detalhe";
+	private static final String PAGINA_TIMELINE_CLIENTE = "condicional/timeline-cliente";
+	private static final String PAGINA_TIMELINE_PRODUTO = "condicional/timeline-produto";
 
 	private final CondicionalService condicionalService;
 	private final ClienteRepository clienteRepository;
@@ -68,6 +73,7 @@ public class CondicionalController extends DefaultController {
 		model.addAttribute("inicioFiltro", inicio);
 		model.addAttribute("fimFiltro", fim);
 		model.addAttribute("clientes", clienteRepository.findAllByEmpresaIdOrderByNomeAsc(empresaId));
+		model.addAttribute("produtos", produtoRepository.findAllByEmpresaIdOrderByDescricaoAsc(empresaId));
 		model.addAttribute("hoje", LocalDate.now());
 		return PAGINA_LISTA;
 	}
@@ -171,6 +177,28 @@ public class CondicionalController extends DefaultController {
 			showError(redirectAttributes, e.getMessage());
 		}
 		return "redirect:/condicionais/" + id;
+	}
+
+	@GetMapping("/cliente/{clienteId}")
+	public String timelineCliente(Model model, @PathVariable Long clienteId) {
+		Long empresaId = contextoUsuarioService.getEmpresaIdObrigatoria();
+		Cliente cliente = clienteRepository.findByIdAndEmpresaId(clienteId, empresaId)
+				.orElseThrow(() -> new EntityNotFoundException("Cliente não encontrado!"));
+		model.addAttribute("cliente", cliente);
+		model.addAttribute("itens", condicionalService.timelineCliente(clienteId));
+		model.addAttribute("hoje", LocalDate.now());
+		return PAGINA_TIMELINE_CLIENTE;
+	}
+
+	@GetMapping("/produto/{produtoId}")
+	public String timelineProduto(Model model, @PathVariable Long produtoId) {
+		Long empresaId = contextoUsuarioService.getEmpresaIdObrigatoria();
+		Produto produto = produtoRepository.findByIdAndEmpresaId(produtoId, empresaId)
+				.orElseThrow(() -> new EntityNotFoundException("Produto não encontrado!"));
+		model.addAttribute("produto", produto);
+		model.addAttribute("itens", condicionalService.timelineProduto(produtoId));
+		model.addAttribute("hoje", LocalDate.now());
+		return PAGINA_TIMELINE_PRODUTO;
 	}
 
 	private List<MovimentoItemForm> montarMovimentos(List<Long> itemIds, List<Integer> quantidades,
