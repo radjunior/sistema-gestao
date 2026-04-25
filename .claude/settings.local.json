@@ -5,7 +5,9 @@
       "Bash(./mvnw compile *)",
       "Bash(./mvnw.cmd -q -DskipTests compile)",
       "Bash(./mvnw.cmd -DskipTests compile)",
-      "Bash(./mvnw.cmd -DskipTests clean compile)"
+      "Bash(./mvnw.cmd -DskipTests clean compile)",
+      "Bash(grep -r \"home\\\\|Home\\\\|@GetMapping.*/$\\\\|@RequestMapping\" \"C:\\\\Workspace\\\\sistema-gestao\\\\src\\\\main\\\\java\\\\br\\\\com\\\\gestao\\\\controller\" --include=\"*.java\" -l)",
+      "Bash(grep -E \"\\\\.html$|^d\")"
     ]
   }
 }
