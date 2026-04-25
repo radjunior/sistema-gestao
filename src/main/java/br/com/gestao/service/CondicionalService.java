@@ -22,6 +22,7 @@ import br.com.gestao.entity.enums.StatusCondicional;
 import br.com.gestao.entity.enums.StatusItemCondicional;
 import br.com.gestao.entity.enums.StatusVenda;
 import br.com.gestao.repository.ClienteRepository;
+import br.com.gestao.repository.CondicionalItemRepository;
 import br.com.gestao.repository.CondicionalRepository;
 import br.com.gestao.repository.ProdutoRepository;
 import br.com.gestao.repository.VendaRepository;
@@ -35,6 +36,7 @@ public class CondicionalService {
 	private static final ZoneId ZONE_SP = ZoneId.of("America/Sao_Paulo");
 
 	private final CondicionalRepository condicionalRepository;
+	private final CondicionalItemRepository condicionalItemRepository;
 	private final ClienteRepository clienteRepository;
 	private final ProdutoRepository produtoRepository;
 	private final VendaRepository vendaRepository;
@@ -42,17 +44,29 @@ public class CondicionalService {
 	private final ContextoUsuarioService contextoUsuarioService;
 
 	public CondicionalService(CondicionalRepository condicionalRepository,
+			CondicionalItemRepository condicionalItemRepository,
 			ClienteRepository clienteRepository,
 			ProdutoRepository produtoRepository,
 			VendaRepository vendaRepository,
 			EstoqueService estoqueService,
 			ContextoUsuarioService contextoUsuarioService) {
 		this.condicionalRepository = condicionalRepository;
+		this.condicionalItemRepository = condicionalItemRepository;
 		this.clienteRepository = clienteRepository;
 		this.produtoRepository = produtoRepository;
 		this.vendaRepository = vendaRepository;
 		this.estoqueService = estoqueService;
 		this.contextoUsuarioService = contextoUsuarioService;
+	}
+
+	public List<br.com.gestao.entity.CondicionalItem> timelineCliente(Long clienteId) {
+		Long empresaId = contextoUsuarioService.getEmpresaIdObrigatoria();
+		return condicionalItemRepository.timelineCliente(empresaId, clienteId);
+	}
+
+	public List<br.com.gestao.entity.CondicionalItem> timelineProduto(Long produtoId) {
+		Long empresaId = contextoUsuarioService.getEmpresaIdObrigatoria();
+		return condicionalItemRepository.timelineProduto(empresaId, produtoId);
 	}
 
 	public IndicadoresCondicional calcularIndicadores() {

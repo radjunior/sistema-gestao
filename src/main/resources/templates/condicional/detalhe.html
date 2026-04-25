@@ -30,7 +30,13 @@
 				<div class="card-body row g-3">
 					<div class="col-md-4">
 						<div class="text-muted small">Cliente</div>
-						<div th:text="${condicional.cliente.nome}"></div>
+						<div>
+							<span th:text="${condicional.cliente.nome}"></span>
+							<a th:href="@{/condicionais/cliente/{id}(id=${condicional.cliente.id})}"
+							   class="btn btn-sm btn-link p-0 ms-1" title="Ver histórico do cliente">
+								<i class="bi bi-clock-history"></i>
+							</a>
+						</div>
 					</div>
 					<div class="col-md-3">
 						<div class="text-muted small">Saída</div>
@@ -171,7 +177,13 @@
 						</thead>
 						<tbody>
 							<tr th:each="i : ${condicional.itens}">
-								<td th:text="${i.produto.descricao}"></td>
+								<td>
+									<span th:text="${i.produto.descricao}"></span>
+									<a th:href="@{/condicionais/produto/{id}(id=${i.produto.id})}"
+									   class="btn btn-sm btn-link p-0 ms-1" title="Ver histórico do produto">
+										<i class="bi bi-clock-history"></i>
+									</a>
+								</td>
 								<td class="text-center"
 									th:text="${i.quantidade + ' (D:' + i.quantidadeDevolvida + ' / C:' + i.quantidadeConvertida + ')'}"></td>
 								<td class="text-end"
