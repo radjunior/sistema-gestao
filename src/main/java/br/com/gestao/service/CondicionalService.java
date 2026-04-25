@@ -59,6 +59,20 @@ public class CondicionalService {
 		this.contextoUsuarioService = contextoUsuarioService;
 	}
 
+	@Transactional
+	public int processarVencimentosGlobal() {
+		LocalDate hoje = LocalDate.now(ZONE_SP);
+		List<Condicional> vencidas = condicionalRepository.findVencidasGlobal(
+				List.of(StatusCondicional.ABERTA, StatusCondicional.PARCIALMENTE_DEVOLVIDA), hoje);
+		int atualizadas = 0;
+		for (Condicional c : vencidas) {
+			c.setStatus(StatusCondicional.VENCIDA);
+			condicionalRepository.save(c);
+			atualizadas++;
+		}
+		return atualizadas;
+	}
+
 	public List<br.com.gestao.entity.CondicionalItem> timelineCliente(Long clienteId) {
 		Long empresaId = contextoUsuarioService.getEmpresaIdObrigatoria();
 		return condicionalItemRepository.timelineCliente(empresaId, clienteId);

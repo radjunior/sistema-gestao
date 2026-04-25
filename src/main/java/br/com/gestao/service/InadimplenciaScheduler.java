@@ -12,16 +12,20 @@ public class InadimplenciaScheduler {
 
 	private final ContasAReceberService contasAReceberService;
 	private final ContasAPagarService contasAPagarService;
+	private final CondicionalService condicionalService;
 
 	public InadimplenciaScheduler(ContasAReceberService contasAReceberService,
-			ContasAPagarService contasAPagarService) {
+			ContasAPagarService contasAPagarService,
+			CondicionalService condicionalService) {
 		this.contasAReceberService = contasAReceberService;
 		this.contasAPagarService = contasAPagarService;
+		this.condicionalService = condicionalService;
 	}
 
 	/**
 	 * Executa diariamente a 01:00 (hora do servidor).
-	 * Atualiza status e encargos de parcelas (a receber) e titulos (a pagar) vencidos.
+	 * Atualiza status e encargos de parcelas (a receber), titulos (a pagar) vencidos,
+	 * e marca condicionais com prazo expirado como VENCIDA.
 	 */
 	@Scheduled(cron = "0 0 1 * * *")
 	public void atualizarInadimplencia() {
@@ -37,6 +41,12 @@ public class InadimplenciaScheduler {
 			log.info("Contas a pagar: {} titulo(s) atualizado(s)", titulos);
 		} catch (Exception e) {
 			log.error("Falha ao processar inadimplencia de contas a pagar", e);
+		}
+		try {
+			int condicionais = condicionalService.processarVencimentosGlobal();
+			log.info("Condicionais: {} marcada(s) como VENCIDA", condicionais);
+		} catch (Exception e) {
+			log.error("Falha ao processar vencimentos de condicionais", e);
 		}
 	}
 
