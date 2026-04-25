@@ -203,13 +203,21 @@ function inicializarModalVersoes() {
 		keyboard: false
 	});
 
+	const renderMarkdown = (texto) => {
+		if (!texto) return "";
+		if (typeof marked !== "undefined" && marked.parse) {
+			return marked.parse(texto, { breaks: true, gfm: true });
+		}
+		return texto.replace(/\n/g, "<br>");
+	};
+
 	const exibirAtual = () => {
 		const atual = pendentes[0];
 		if (!atual) {
 			return;
 		}
-		titulo.textContent = atual.titulo || "Nova versao";
-		descricao.textContent = atual.descricao || "";
+		titulo.textContent = atual.titulo || "Nova versão";
+		descricao.innerHTML = renderMarkdown(atual.descricao || "");
 		modal.show();
 	};
 
