@@ -63,6 +63,12 @@ public class GlobalModelAttributes {
 		if (valor == null) {
 			return "";
 		}
-		return valor.replace("\\", "\\\\").replace("\"", "\\\"").replace("\r", "").replace("\n", "\\n");
+		return valor
+				.replace("\\", "\\\\")
+				.replace("\"", "\\\"")
+				.replace("\r", "")
+				.replace("\n", "\\n")
+				.replace("\t", "\\t")
+				.replace("</", "<\\/");
 	}
 }
