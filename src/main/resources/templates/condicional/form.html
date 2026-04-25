@@ -1,0 +1,126 @@
+<html lang="pt-br"
+	  xmlns:th="http://www.thymeleaf.org"
+	  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	  layout:decorate="~{template}">
+
+<head>
+	<title>Nova Condicional</title>
+</head>
+
+<body>
+	<div layout:fragment="conteudo">
+		<div class="container-fluid">
+			<div class="card mt-2">
+				<div class="card-header d-flex justify-content-between align-items-center">
+					<span>Nova Condicional</span>
+					<a th:href="@{/condicionais}" class="btn btn-sm btn-outline-secondary">
+						<i class="bi bi-arrow-left"></i> Voltar
+					</a>
+				</div>
+				<form th:action="@{/condicionais}" method="post" class="card-body">
+					<div class="row g-3">
+						<div class="col-md-5">
+							<label class="form-label">Cliente *</label>
+							<select class="form-select" name="clienteId" required>
+								<option value="">Selecione...</option>
+								<option th:each="c : ${clientes}" th:value="${c.id}" th:text="${c.nome}"></option>
+							</select>
+						</div>
+						<div class="col-md-3">
+							<label class="form-label">Devolução prevista *</label>
+							<input type="date" class="form-control" name="dataPrevistaDevolucao"
+								   th:value="${dataPrevistaPadrao}" required>
+						</div>
+						<div class="col-md-4">
+							<label class="form-label">Observação</label>
+							<input type="text" class="form-control" name="observacao" maxlength="500">
+						</div>
+					</div>
+
+					<hr>
+
+					<h6>Itens</h6>
+					<table class="table table-sm align-middle" id="tabela-itens">
+						<thead>
+							<tr>
+								<th style="width: 55%;">Produto</th>
+								<th style="width: 15%;">Quantidade</th>
+								<th style="width: 20%;">Preço unitário (R$)</th>
+								<th style="width: 10%;"></th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr class="linha-item">
+								<td>
+									<select class="form-select produto-select" name="produtoId" required>
+										<option value="">Selecione...</option>
+										<option th:each="p : ${produtos}" th:value="${p.id}"
+												th:attr="data-preco=${p.preco}"
+												th:text="${p.descricao}"></option>
+									</select>
+								</td>
+								<td>
+									<input type="number" class="form-control" name="quantidade" min="1" value="1" required>
+								</td>
+								<td>
+									<input type="number" class="form-control preco-input" name="precoUnitario"
+										   step="0.01" min="0" placeholder="auto">
+								</td>
+								<td>
+									<button type="button" class="btn btn-sm btn-outline-danger btn-remover">
+										<i class="bi bi-trash"></i>
+									</button>
+								</td>
+							</tr>
+						</tbody>
+					</table>
+
+					<button type="button" class="btn btn-sm btn-outline-primary" id="btn-add-item">
+						<i class="bi bi-plus"></i> Adicionar item
+					</button>
+
+					<div class="mt-4 text-end">
+						<button type="submit" class="btn btn-success">
+							<i class="bi bi-check-circle"></i> Abrir condicional
+						</button>
+					</div>
+				</form>
+			</div>
+		</div>
+
+		<script>
+			(function () {
+				const tabela = document.getElementById('tabela-itens').getElementsByTagName('tbody')[0];
+
+				function bindLinha(tr) {
+					const select = tr.querySelector('.produto-select');
+					const preco = tr.querySelector('.preco-input');
+					select.addEventListener('change', function () {
+						const opt = select.options[select.selectedIndex];
+						const p = opt.getAttribute('data-preco');
+						if (p && !preco.value) {
+							preco.placeholder = 'sugerido: ' + p;
+						}
+					});
+					tr.querySelector('.btn-remover').addEventListener('click', function () {
+						if (tabela.rows.length > 1) {
+							tr.remove();
+						}
+					});
+				}
+
+				Array.from(tabela.rows).forEach(bindLinha);
+
+				document.getElementById('btn-add-item').addEventListener('click', function () {
+					const modelo = tabela.rows[0];
+					const nova = modelo.cloneNode(true);
+					nova.querySelectorAll('input').forEach(i => { i.value = i.name === 'quantidade' ? '1' : ''; });
+					nova.querySelector('select').selectedIndex = 0;
+					tabela.appendChild(nova);
+					bindLinha(nova);
+				});
+			})();
+		</script>
+	</div>
+</body>
+</html>

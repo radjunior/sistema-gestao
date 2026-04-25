@@ -1,0 +1,173 @@
+<html lang="pt-br"
+	  xmlns:th="http://www.thymeleaf.org"
+	  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	  layout:decorate="~{template}">
+
+<head>
+	<title>Condicionais</title>
+</head>
+
+<body>
+	<div layout:fragment="conteudo">
+		<div class="container-fluid">
+
+			<div class="row g-3 mt-1">
+				<div class="col-md-4">
+					<div class="card kpi-card border-primary">
+						<div class="card-body">
+							<div class="kpi-label">Condicionais em Aberto</div>
+							<div class="kpi-value text-primary" th:text="${indicadores.totalAbertas}"></div>
+						</div>
+					</div>
+				</div>
+				<div class="col-md-4">
+					<div class="card kpi-card border-danger">
+						<div class="card-body">
+							<div class="kpi-label">Vencidas</div>
+							<div class="kpi-value text-danger" th:text="${indicadores.totalVencidas}"></div>
+						</div>
+					</div>
+				</div>
+				<div class="col-md-4">
+					<div class="card kpi-card border-warning">
+						<div class="card-body">
+							<div class="kpi-label">Valor em Poder de Clientes</div>
+							<div class="kpi-value text-warning"
+								 th:text="${'R$ ' + #numbers.formatDecimal(indicadores.valorEmPoderClientes, 1, 'POINT', 2, 'COMMA')}"></div>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<div class="card mt-3">
+				<div class="card-header d-flex justify-content-between align-items-center">
+					<span>Filtros</span>
+					<a th:href="@{/condicionais/nova}" class="btn btn-sm btn-success">
+						<i class="bi bi-plus-circle"></i> Nova Condicional
+					</a>
+				</div>
+				<form th:action="@{/condicionais}" method="get" class="card-body row g-3">
+					<div class="col-md-3">
+						<label class="form-label">Status</label>
+						<select class="form-select" name="status">
+							<option value="">Todos</option>
+							<option th:each="s : ${statusDisponiveis}" th:value="${s.name()}"
+									th:text="${s.descricao}"
+									th:selected="${statusFiltro != null and statusFiltro.name() == s.name()}"></option>
+						</select>
+					</div>
+					<div class="col-md-3">
+						<label class="form-label">Cliente</label>
+						<select class="form-select" name="clienteId">
+							<option value="">Todos</option>
+							<option th:each="c : ${clientes}" th:value="${c.id}" th:text="${c.nome}"
+									th:selected="${clienteIdFiltro != null and clienteIdFiltro == c.id}"></option>
+						</select>
+					</div>
+					<div class="col-md-2">
+						<label class="form-label">Saída de</label>
+						<input type="date" name="inicio" class="form-control" th:value="${inicioFiltro}">
+					</div>
+					<div class="col-md-2">
+						<label class="form-label">Até</label>
+						<input type="date" name="fim" class="form-control" th:value="${fimFiltro}">
+					</div>
+					<div class="col-md-2 d-flex align-items-end">
+						<button type="submit" class="btn btn-primary w-100"><i class="bi bi-search"></i> Filtrar</button>
+					</div>
+				</form>
+			</div>
+
+			<div class="card mt-3">
+				<div class="card-header">Linhas do tempo</div>
+				<div class="card-body row g-3">
+					<div class="col-md-6">
+						<label class="form-label">Histórico por cliente</label>
+						<div class="input-group">
+							<select class="form-select" id="timeline-cliente-select">
+								<option value="">Selecione um cliente...</option>
+								<option th:each="c : ${clientes}" th:value="${c.id}" th:text="${c.nome}"></option>
+							</select>
+							<button type="button" class="btn btn-outline-primary" id="btn-timeline-cliente">
+								<i class="bi bi-clock-history"></i> Ver
+							</button>
+						</div>
+					</div>
+					<div class="col-md-6">
+						<label class="form-label">Histórico por produto</label>
+						<div class="input-group">
+							<select class="form-select" id="timeline-produto-select">
+								<option value="">Selecione um produto...</option>
+								<option th:each="p : ${produtos}" th:value="${p.id}" th:text="${p.descricao}"></option>
+							</select>
+							<button type="button" class="btn btn-outline-primary" id="btn-timeline-produto">
+								<i class="bi bi-clock-history"></i> Ver
+							</button>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<div class="card mt-3">
+				<div class="card-header">Condicionais</div>
+				<div class="card-body">
+					<table class="table table-sm align-middle">
+						<thead>
+							<tr>
+								<th>#</th>
+								<th>Cliente</th>
+								<th>Saída</th>
+								<th>Devolução prevista</th>
+								<th class="text-center">Itens</th>
+								<th>Status</th>
+								<th></th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr th:each="c : ${condicionais}"
+								th:classappend="${c.status.name() == 'VENCIDA'} ? 'table-danger' : ''">
+								<td th:text="${c.id}"></td>
+								<td th:text="${c.cliente.nome}"></td>
+								<td th:text="${#temporals.format(c.dataSaida, 'dd/MM/yyyy HH:mm')}"></td>
+								<td th:text="${#temporals.format(c.dataPrevistaDevolucao, 'dd/MM/yyyy')}"></td>
+								<td class="text-center" th:text="${#lists.size(c.itens)}"></td>
+								<td>
+									<span th:switch="${c.status.name()}">
+										<span th:case="'ABERTA'" class="badge bg-primary" th:text="${c.status.descricao}"></span>
+										<span th:case="'PARCIALMENTE_DEVOLVIDA'" class="badge bg-info text-dark" th:text="${c.status.descricao}"></span>
+										<span th:case="'FINALIZADA'" class="badge bg-success" th:text="${c.status.descricao}"></span>
+										<span th:case="'VENCIDA'" class="badge bg-danger" th:text="${c.status.descricao}"></span>
+										<span th:case="'CANCELADA'" class="badge bg-secondary" th:text="${c.status.descricao}"></span>
+										<span th:case="*" class="badge bg-secondary" th:text="${c.status.descricao}"></span>
+									</span>
+								</td>
+								<td>
+									<a th:href="@{/condicionais/{id}(id=${c.id})}" class="btn btn-sm btn-outline-primary">
+										<i class="bi bi-eye"></i>
+									</a>
+								</td>
+							</tr>
+							<tr th:if="${#lists.isEmpty(condicionais)}">
+								<td colspan="7" class="text-center text-muted">Nenhuma condicional encontrada.</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+			</div>
+		</div>
+
+		<script>
+			(function () {
+				document.getElementById('btn-timeline-cliente').addEventListener('click', function () {
+					var id = document.getElementById('timeline-cliente-select').value;
+					if (id) { window.location.href = '/condicionais/cliente/' + id; }
+				});
+				document.getElementById('btn-timeline-produto').addEventListener('click', function () {
+					var id = document.getElementById('timeline-produto-select').value;
+					if (id) { window.location.href = '/condicionais/produto/' + id; }
+				});
+			})();
+		</script>
+	</div>
+</body>
+</html>

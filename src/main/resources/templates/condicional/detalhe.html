@@ -1,0 +1,212 @@
+<html lang="pt-br"
+	  xmlns:th="http://www.thymeleaf.org"
+	  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	  layout:decorate="~{template}">
+
+<head>
+	<title th:text="'Condicional #' + ${condicional.id}">Condicional</title>
+</head>
+
+<body>
+	<div layout:fragment="conteudo">
+		<div class="container-fluid">
+
+			<div class="card mt-2">
+				<div class="card-header d-flex justify-content-between align-items-center">
+					<div>
+						<strong th:text="'Condicional #' + ${condicional.id}"></strong>
+						<span class="ms-2" th:switch="${condicional.status.name()}">
+							<span th:case="'ABERTA'" class="badge bg-primary" th:text="${condicional.status.descricao}"></span>
+							<span th:case="'PARCIALMENTE_DEVOLVIDA'" class="badge bg-info text-dark" th:text="${condicional.status.descricao}"></span>
+							<span th:case="'FINALIZADA'" class="badge bg-success" th:text="${condicional.status.descricao}"></span>
+							<span th:case="'VENCIDA'" class="badge bg-danger" th:text="${condicional.status.descricao}"></span>
+							<span th:case="'CANCELADA'" class="badge bg-secondary" th:text="${condicional.status.descricao}"></span>
+						</span>
+					</div>
+					<a th:href="@{/condicionais}" class="btn btn-sm btn-outline-secondary">
+						<i class="bi bi-arrow-left"></i> Voltar
+					</a>
+				</div>
+				<div class="card-body row g-3">
+					<div class="col-md-4">
+						<div class="text-muted small">Cliente</div>
+						<div>
+							<span th:text="${condicional.cliente.nome}"></span>
+							<a th:href="@{/condicionais/cliente/{id}(id=${condicional.cliente.id})}"
+							   class="btn btn-sm btn-link p-0 ms-1" title="Ver histórico do cliente">
+								<i class="bi bi-clock-history"></i>
+							</a>
+						</div>
+					</div>
+					<div class="col-md-3">
+						<div class="text-muted small">Saída</div>
+						<div th:text="${#temporals.format(condicional.dataSaida, 'dd/MM/yyyy HH:mm')}"></div>
+					</div>
+					<div class="col-md-3">
+						<div class="text-muted small">Devolução prevista</div>
+						<div th:text="${#temporals.format(condicional.dataPrevistaDevolucao, 'dd/MM/yyyy')}"></div>
+					</div>
+					<div class="col-md-2">
+						<div class="text-muted small">Fechamento</div>
+						<div th:text="${condicional.dataFechamento != null ? #temporals.format(condicional.dataFechamento, 'dd/MM/yyyy HH:mm') : '—'}"></div>
+					</div>
+					<div class="col-md-12" th:if="${condicional.observacao != null and !condicional.observacao.isEmpty()}">
+						<div class="text-muted small">Observação</div>
+						<div th:text="${condicional.observacao}"></div>
+					</div>
+					<div class="col-md-12" th:if="${condicional.vendaGerada != null}">
+						<div class="alert alert-info mb-0">
+							Venda gerada:
+							<a th:href="@{/vendas/{id}(id=${condicional.vendaGerada.id})}"
+							   th:text="'#' + ${condicional.vendaGerada.id}"></a>
+							— status:
+							<span th:text="${condicional.vendaGerada.status.descricao}"></span>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<!-- Devolver -->
+			<div class="card mt-3" th:if="${condicional.status.name() != 'FINALIZADA' and condicional.status.name() != 'CANCELADA'}">
+				<div class="card-header">Registrar devolução</div>
+				<form th:action="@{/condicionais/{id}/devolver(id=${condicional.id})}" method="post" class="card-body">
+					<table class="table table-sm align-middle">
+						<thead>
+							<tr>
+								<th>Produto</th>
+								<th class="text-center">Saiu</th>
+								<th class="text-center">Devolvido</th>
+								<th class="text-center">Convertido</th>
+								<th class="text-center">Pendente</th>
+								<th style="width: 130px;">Devolver agora</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr th:each="i : ${condicional.itens}">
+								<td>
+									<input type="hidden" name="itemId" th:value="${i.id}">
+									<span th:text="${i.produto.descricao}"></span>
+								</td>
+								<td class="text-center" th:text="${i.quantidade}"></td>
+								<td class="text-center" th:text="${i.quantidadeDevolvida}"></td>
+								<td class="text-center" th:text="${i.quantidadeConvertida}"></td>
+								<td class="text-center fw-bold" th:text="${i.quantidadePendente}"></td>
+								<td>
+									<input type="number" class="form-control form-control-sm" name="quantidade"
+										   min="0" th:max="${i.quantidadePendente}" value="0"
+										   th:disabled="${i.quantidadePendente == 0}">
+								</td>
+							</tr>
+						</tbody>
+					</table>
+					<div class="text-end">
+						<button type="submit" class="btn btn-warning">
+							<i class="bi bi-arrow-counterclockwise"></i> Devolver
+						</button>
+					</div>
+				</form>
+			</div>
+
+			<!-- Converter em venda -->
+			<div class="card mt-3" th:if="${condicional.status.name() != 'FINALIZADA' and condicional.status.name() != 'CANCELADA'}">
+				<div class="card-header">Converter em venda</div>
+				<form th:action="@{/condicionais/{id}/converter(id=${condicional.id})}" method="post" class="card-body">
+					<table class="table table-sm align-middle">
+						<thead>
+							<tr>
+								<th>Produto</th>
+								<th class="text-center">Pendente</th>
+								<th class="text-end">Preço travado</th>
+								<th style="width: 130px;">Converter</th>
+								<th style="width: 160px;">Sobrescrever preço</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr th:each="i : ${condicional.itens}">
+								<td>
+									<input type="hidden" name="itemId" th:value="${i.id}">
+									<span th:text="${i.produto.descricao}"></span>
+								</td>
+								<td class="text-center fw-bold" th:text="${i.quantidadePendente}"></td>
+								<td class="text-end"
+									th:text="${'R$ ' + #numbers.formatDecimal(i.precoUnitario, 1, 'POINT', 2, 'COMMA')}"></td>
+								<td>
+									<input type="number" class="form-control form-control-sm" name="quantidade"
+										   min="0" th:max="${i.quantidadePendente}" value="0"
+										   th:disabled="${i.quantidadePendente == 0}">
+								</td>
+								<td>
+									<input type="number" class="form-control form-control-sm" name="precoUnitarioOverride"
+										   step="0.01" min="0" placeholder="opcional">
+								</td>
+							</tr>
+						</tbody>
+					</table>
+					<div class="text-end">
+						<button type="submit" class="btn btn-success">
+							<i class="bi bi-cash-coin"></i> Converter em venda
+						</button>
+					</div>
+				</form>
+			</div>
+
+			<!-- Itens (resumo + cancelar) -->
+			<div class="card mt-3 mb-4">
+				<div class="card-header d-flex justify-content-between align-items-center">
+					<span>Itens da condicional</span>
+					<form th:if="${condicional.status.name() != 'FINALIZADA' and condicional.status.name() != 'CANCELADA'}"
+						  th:action="@{/condicionais/{id}/cancelar(id=${condicional.id})}" method="post"
+						  onsubmit="return confirm('Cancelar a condicional? Itens pendentes voltam ao estoque.');">
+						<button type="submit" class="btn btn-sm btn-outline-danger">
+							<i class="bi bi-x-circle"></i> Cancelar condicional
+						</button>
+					</form>
+				</div>
+				<div class="card-body">
+					<table class="table table-sm">
+						<thead>
+							<tr>
+								<th>Produto</th>
+								<th class="text-center">Qtd</th>
+								<th class="text-end">Preço</th>
+								<th class="text-end">Subtotal</th>
+								<th>Status item</th>
+								<th>Devolução</th>
+								<th>Conversão</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr th:each="i : ${condicional.itens}">
+								<td>
+									<span th:text="${i.produto.descricao}"></span>
+									<a th:href="@{/condicionais/produto/{id}(id=${i.produto.id})}"
+									   class="btn btn-sm btn-link p-0 ms-1" title="Ver histórico do produto">
+										<i class="bi bi-clock-history"></i>
+									</a>
+								</td>
+								<td class="text-center"
+									th:text="${i.quantidade + ' (D:' + i.quantidadeDevolvida + ' / C:' + i.quantidadeConvertida + ')'}"></td>
+								<td class="text-end"
+									th:text="${'R$ ' + #numbers.formatDecimal(i.precoUnitario, 1, 'POINT', 2, 'COMMA')}"></td>
+								<td class="text-end"
+									th:text="${'R$ ' + #numbers.formatDecimal(i.precoUnitario.multiply(new java.math.BigDecimal(i.quantidade)), 1, 'POINT', 2, 'COMMA')}"></td>
+								<td>
+									<span th:switch="${i.status.name()}">
+										<span th:case="'EM_PODER_CLIENTE'" class="badge bg-primary" th:text="${i.status.descricao}"></span>
+										<span th:case="'PARCIALMENTE_RESOLVIDO'" class="badge bg-info text-dark" th:text="${i.status.descricao}"></span>
+										<span th:case="'DEVOLVIDO'" class="badge bg-warning text-dark" th:text="${i.status.descricao}"></span>
+										<span th:case="'CONVERTIDO_VENDA'" class="badge bg-success" th:text="${i.status.descricao}"></span>
+										<span th:case="*" class="badge bg-secondary" th:text="${i.status.descricao}"></span>
+									</span>
+								</td>
+								<td th:text="${i.dataDevolucao != null ? #temporals.format(i.dataDevolucao, 'dd/MM/yyyy HH:mm') : '—'}"></td>
+								<td th:text="${i.dataConversao != null ? #temporals.format(i.dataConversao, 'dd/MM/yyyy HH:mm') : '—'}"></td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+			</div>
+		</div>
+	</div>
+</body>
+</html>

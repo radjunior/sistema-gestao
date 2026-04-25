@@ -1,0 +1,98 @@
+<html lang="pt-br"
+	  xmlns:th="http://www.thymeleaf.org"
+	  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	  layout:decorate="~{template}">
+
+<head>
+	<title th:text="'Histórico de condicionais - ' + ${cliente.nome}">Timeline cliente</title>
+	<style>
+		.timeline { position: relative; padding-left: 2rem; }
+		.timeline::before { content: ''; position: absolute; left: 0.6rem; top: 0; bottom: 0; width: 2px; background: #dee2e6; }
+		.timeline-item { position: relative; margin-bottom: 1.25rem; }
+		.timeline-item::before {
+			content: ''; position: absolute; left: -1.55rem; top: 0.4rem;
+			width: 0.85rem; height: 0.85rem; border-radius: 50%; background: #6c757d;
+			border: 2px solid #fff; box-shadow: 0 0 0 2px #dee2e6;
+		}
+		.timeline-item.dot-success::before { background: #198754; box-shadow: 0 0 0 2px #198754; }
+		.timeline-item.dot-warning::before { background: #ffc107; box-shadow: 0 0 0 2px #ffc107; }
+		.timeline-item.dot-primary::before { background: #0d6efd; box-shadow: 0 0 0 2px #0d6efd; }
+		.timeline-item.dot-info::before    { background: #0dcaf0; box-shadow: 0 0 0 2px #0dcaf0; }
+	</style>
+</head>
+
+<body>
+	<div layout:fragment="conteudo">
+		<div class="container-fluid">
+			<div class="card mt-2">
+				<div class="card-header d-flex justify-content-between align-items-center">
+					<div>
+						<strong>Histórico de condicionais</strong>
+						<span class="text-muted ms-2" th:text="${cliente.nome}"></span>
+					</div>
+					<a th:href="@{/condicionais}" class="btn btn-sm btn-outline-secondary">
+						<i class="bi bi-arrow-left"></i> Voltar
+					</a>
+				</div>
+				<div class="card-body">
+
+					<p class="text-muted" th:if="${#lists.isEmpty(itens)}">
+						Este cliente nunca pegou produtos em condicional.
+					</p>
+
+					<div class="timeline" th:unless="${#lists.isEmpty(itens)}">
+						<div class="timeline-item"
+							 th:each="i : ${itens}"
+							 th:classappend="${i.status.name() == 'CONVERTIDO_VENDA'} ? 'dot-success'
+								: (${i.status.name() == 'DEVOLVIDO'} ? 'dot-warning'
+								: (${i.status.name() == 'EM_PODER_CLIENTE'} ? 'dot-primary' : 'dot-info'))">
+							<div class="d-flex justify-content-between">
+								<div>
+									<strong th:text="${i.produto.descricao}"></strong>
+									<span class="text-muted">— qtd: </span>
+									<span th:text="${i.quantidade}"></span>
+									<span class="text-muted small"
+										  th:text="' (D:' + ${i.quantidadeDevolvida} + ' / C:' + ${i.quantidadeConvertida} + ')'"></span>
+								</div>
+								<div>
+									<span th:switch="${i.status.name()}">
+										<span th:case="'EM_PODER_CLIENTE'" class="badge bg-primary" th:text="${i.status.descricao}"></span>
+										<span th:case="'PARCIALMENTE_RESOLVIDO'" class="badge bg-info text-dark" th:text="${i.status.descricao}"></span>
+										<span th:case="'DEVOLVIDO'" class="badge bg-warning text-dark" th:text="${i.status.descricao}"></span>
+										<span th:case="'CONVERTIDO_VENDA'" class="badge bg-success" th:text="${i.status.descricao}"></span>
+										<span th:case="*" class="badge bg-secondary" th:text="${i.status.descricao}"></span>
+									</span>
+								</div>
+							</div>
+							<div class="text-muted small mt-1">
+								<i class="bi bi-arrow-right-short"></i>
+								Saída em
+								<span th:text="${#temporals.format(i.condicional.dataSaida, 'dd/MM/yyyy HH:mm')}"></span>
+								— prevista p/
+								<span th:text="${#temporals.format(i.condicional.dataPrevistaDevolucao, 'dd/MM/yyyy')}"></span>
+								<span th:if="${i.dataDevolucao != null}">
+									— devolvido em
+									<span th:text="${#temporals.format(i.dataDevolucao, 'dd/MM/yyyy HH:mm')}"></span>
+								</span>
+								<span th:if="${i.dataConversao != null}">
+									— convertido em
+									<span th:text="${#temporals.format(i.dataConversao, 'dd/MM/yyyy HH:mm')}"></span>
+								</span>
+							</div>
+							<div class="small">
+								<a th:href="@{/condicionais/{id}(id=${i.condicional.id})}"
+								   th:text="'Condicional #' + ${i.condicional.id}"></a>
+								<span th:if="${i.vendaItemGerado != null and i.vendaItemGerado.venda != null}">
+									—
+									<a th:href="@{/vendas/{id}(id=${i.vendaItemGerado.venda.id})}"
+									   th:text="'Venda #' + ${i.vendaItemGerado.venda.id}"></a>
+								</span>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</body>
+</html>
