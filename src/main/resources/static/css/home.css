@@ -1,0 +1,495 @@
+.home-dashboard {
+	display: grid;
+	gap: 1rem;
+	padding-top: 0.25rem;
+	padding-bottom: 1rem;
+}
+
+.home-overview {
+	display: grid;
+	grid-template-columns: repeat(6, minmax(0, 1fr));
+	gap: 0.875rem;
+}
+
+.home-kpi {
+	position: relative;
+	padding: 1rem;
+	border: 0.0625rem solid var(--color-border);
+	border-radius: 0.75rem;
+	background: linear-gradient(180deg, var(--color-surface) 0%, var(--color-surface-muted) 100%);
+	box-shadow: var(--shadow-sm);
+	overflow: hidden;
+}
+
+.home-kpi::after {
+	content: "";
+	position: absolute;
+	inset: auto 0 0 0;
+	height: 0.1875rem;
+	background: var(--kpi-accent, var(--color-primary));
+}
+
+.home-kpi__label {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 0.75rem;
+	margin-bottom: 0.75rem;
+	font-size: 0.8125rem;
+	font-weight: 700;
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+	color: var(--color-text-muted);
+}
+
+.home-kpi__icon {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 2rem;
+	height: 2rem;
+	border-radius: 0.5rem;
+	background: color-mix(in srgb, var(--kpi-accent, var(--color-primary)) 14%, transparent);
+	color: var(--kpi-accent, var(--color-primary));
+	font-size: 1rem;
+}
+
+.home-kpi__value {
+	font-size: 1.5rem;
+	font-weight: 800;
+	line-height: 1.1;
+	color: var(--color-text);
+}
+
+.home-kpi__meta {
+	margin-top: 0.5rem;
+	font-size: 0.8125rem;
+	color: var(--color-text-muted);
+}
+
+.home-grid {
+	display: grid;
+	gap: 1rem;
+}
+
+.home-grid--alerts,
+.home-grid--primary,
+.home-grid--secondary,
+.home-grid--tables {
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.home-section-card {
+	height: 100%;
+}
+
+.home-section-card__header {
+	display: flex;
+	align-items: flex-start;
+	justify-content: space-between;
+	gap: 1rem;
+}
+
+.home-section-card__title {
+	margin: 0;
+	font-size: 1rem;
+	font-weight: 700;
+}
+
+.home-section-card__subtitle {
+	margin: 0.25rem 0 0;
+	font-size: 0.8125rem;
+	color: var(--color-text-muted);
+}
+
+.home-section-card__badge {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-width: 2rem;
+	height: 2rem;
+	padding: 0 0.625rem;
+	border-radius: 999px;
+	background: var(--color-primary-soft);
+	color: var(--color-primary-strong);
+	font-size: 0.8125rem;
+	font-weight: 700;
+}
+
+.home-alert-list,
+.home-shortcuts,
+.home-activity-list,
+.home-financial-kpis,
+.home-stock-summary,
+.home-admin-summary {
+	display: grid;
+	gap: 0.75rem;
+}
+
+.home-alert-item,
+.home-activity-item,
+.home-shortcut,
+.home-metric,
+.home-admin-metric {
+	display: flex;
+	align-items: flex-start;
+	gap: 0.75rem;
+	padding: 0.875rem 0.9375rem;
+	border: 0.0625rem solid var(--color-border);
+	border-radius: 0.75rem;
+	background: var(--color-surface);
+}
+
+.home-alert-item__icon,
+.home-activity-item__icon,
+.home-shortcut__icon,
+.home-metric__icon {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 2.25rem;
+	height: 2.25rem;
+	border-radius: 0.625rem;
+	background: var(--color-surface-muted);
+	color: var(--color-primary);
+	flex-shrink: 0;
+	font-size: 1rem;
+}
+
+.home-alert-item__content,
+.home-activity-item__content,
+.home-shortcut__content {
+	min-width: 0;
+}
+
+.home-alert-item__title,
+.home-activity-item__title,
+.home-shortcut__title {
+	margin: 0;
+	font-size: 0.9375rem;
+	font-weight: 700;
+	color: var(--color-text);
+}
+
+.home-alert-item__text,
+.home-activity-item__meta,
+.home-shortcut__meta,
+.home-metric__meta,
+.home-admin-metric__meta {
+	margin: 0.25rem 0 0;
+	font-size: 0.8125rem;
+	color: var(--color-text-muted);
+}
+
+.home-alert-item__pill,
+.home-shortcut__pill {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-width: 4.5rem;
+	padding: 0.25rem 0.625rem;
+	border-radius: 999px;
+	background: var(--color-surface-muted);
+	color: var(--color-text-muted);
+	font-size: 0.75rem;
+	font-weight: 700;
+}
+
+.home-shortcuts {
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.home-shortcut {
+	cursor: default;
+}
+
+.home-chart-block {
+	display: grid;
+	gap: 1rem;
+}
+
+.home-chart {
+	display: grid;
+	grid-template-columns: repeat(7, minmax(0, 1fr));
+	align-items: end;
+	gap: 0.75rem;
+	min-height: 15rem;
+	padding: 1rem 0.5rem 0.5rem;
+	border: 0.0625rem solid var(--color-border);
+	border-radius: 0.75rem;
+	background: linear-gradient(180deg, var(--color-surface-muted) 0%, var(--color-surface) 100%);
+}
+
+.home-chart__bar-wrap {
+	display: grid;
+	gap: 0.625rem;
+	justify-items: center;
+}
+
+.home-chart__bar {
+	display: flex;
+	align-items: flex-end;
+	justify-content: center;
+	width: 100%;
+	height: 11rem;
+}
+
+.home-chart__bar-fill {
+	width: 100%;
+	max-width: 2.75rem;
+	border-radius: 0.625rem 0.625rem 0 0;
+	background: linear-gradient(180deg, var(--color-primary) 0%, var(--color-primary-strong) 100%);
+}
+
+.home-chart__label {
+	font-size: 0.8125rem;
+	font-weight: 700;
+	color: var(--color-text-muted);
+}
+
+.home-chart__value {
+	font-size: 0.75rem;
+	color: var(--color-text-muted);
+}
+
+.home-chart-legend {
+	display: grid;
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+	gap: 0.75rem;
+}
+
+.home-chart-legend__item,
+.home-financial-kpis__item,
+.home-stock-summary__item,
+.home-admin-summary__item {
+	padding: 0.875rem 0.9375rem;
+	border: 0.0625rem solid var(--color-border);
+	border-radius: 0.75rem;
+	background: var(--color-surface);
+}
+
+.home-chart-legend__item strong,
+.home-financial-kpis__item strong,
+.home-stock-summary__item strong,
+.home-admin-summary__item strong {
+	display: block;
+	font-size: 1.125rem;
+	font-weight: 800;
+	color: var(--color-text);
+}
+
+.home-chart-legend__item span,
+.home-financial-kpis__item span,
+.home-stock-summary__item span,
+.home-admin-summary__item span {
+	display: block;
+	margin-top: 0.25rem;
+	font-size: 0.8125rem;
+	color: var(--color-text-muted);
+}
+
+.home-split-list {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 1rem;
+	margin-top: 1rem;
+}
+
+.home-list-title {
+	margin: 0 0 0.75rem;
+	font-size: 0.875rem;
+	font-weight: 700;
+	color: var(--color-text);
+}
+
+.home-ranked-list {
+	display: grid;
+	gap: 0.625rem;
+}
+
+.home-ranked-list__item {
+	display: grid;
+	grid-template-columns: auto 1fr auto;
+	gap: 0.75rem;
+	align-items: center;
+	padding: 0.75rem 0.875rem;
+	border: 0.0625rem solid var(--color-border);
+	border-radius: 0.75rem;
+	background: var(--color-surface);
+}
+
+.home-ranked-list__index {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 1.75rem;
+	height: 1.75rem;
+	border-radius: 999px;
+	background: var(--color-primary-soft);
+	color: var(--color-primary-strong);
+	font-size: 0.75rem;
+	font-weight: 800;
+}
+
+.home-ranked-list__name {
+	font-size: 0.875rem;
+	font-weight: 600;
+	color: var(--color-text);
+}
+
+.home-ranked-list__meta {
+	font-size: 0.8125rem;
+	color: var(--color-text-muted);
+}
+
+.home-ranked-list__value {
+	font-size: 0.875rem;
+	font-weight: 800;
+	color: var(--color-text);
+}
+
+.home-financial-kpis,
+.home-stock-summary,
+.home-admin-summary {
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.home-mini-table {
+	margin-top: 1rem;
+	border: 0.0625rem solid var(--color-border);
+	border-radius: 0.75rem;
+	overflow: hidden;
+}
+
+.home-mini-table__table {
+	width: 100%;
+	border-collapse: collapse;
+}
+
+.home-mini-table__table th,
+.home-mini-table__table td {
+	padding: 0.75rem 0.875rem;
+	border-bottom: 0.0625rem solid var(--color-border);
+	font-size: 0.875rem;
+	text-align: left;
+}
+
+.home-mini-table__table th {
+	font-size: 0.75rem;
+	font-weight: 800;
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+	color: var(--color-text-muted);
+	background: var(--color-surface-muted);
+}
+
+.home-mini-table__table tr:last-child td {
+	border-bottom: 0;
+}
+
+.home-status {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	padding: 0.25rem 0.5rem;
+	border-radius: 999px;
+	font-size: 0.75rem;
+	font-weight: 700;
+}
+
+.home-status--success {
+	background: color-mix(in srgb, var(--color-success) 12%, transparent);
+	color: var(--color-success);
+}
+
+.home-status--warning {
+	background: color-mix(in srgb, var(--color-warning) 18%, transparent);
+	color: #b86907;
+}
+
+.home-status--danger {
+	background: color-mix(in srgb, var(--color-danger) 14%, transparent);
+	color: var(--color-danger);
+}
+
+.home-activity-list {
+	position: relative;
+}
+
+.home-activity-item {
+	position: relative;
+}
+
+.home-activity-item + .home-activity-item::before {
+	content: "";
+	position: absolute;
+	left: 1.125rem;
+	top: -0.75rem;
+	bottom: calc(100% - 0.25rem);
+	width: 0.0625rem;
+	background: var(--color-border);
+}
+
+.home-admin-card--saas .home-admin-summary__item:first-child {
+	border-color: color-mix(in srgb, var(--color-primary) 28%, var(--color-border));
+}
+
+.home-admin-card--empresa .home-admin-summary__item:first-child {
+	border-color: color-mix(in srgb, var(--color-accent) 28%, var(--color-border));
+}
+
+html[data-theme="dark"] .home-kpi,
+html[data-theme="dark"] .home-chart,
+html[data-theme="dark"] .home-alert-item,
+html[data-theme="dark"] .home-activity-item,
+html[data-theme="dark"] .home-shortcut,
+html[data-theme="dark"] .home-metric,
+html[data-theme="dark"] .home-admin-metric,
+html[data-theme="dark"] .home-chart-legend__item,
+html[data-theme="dark"] .home-financial-kpis__item,
+html[data-theme="dark"] .home-stock-summary__item,
+html[data-theme="dark"] .home-admin-summary__item,
+html[data-theme="dark"] .home-ranked-list__item {
+	box-shadow: none;
+}
+
+@media (max-width: 1399.98px) {
+	.home-overview {
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+	}
+}
+
+@media (max-width: 991.98px) {
+	.home-grid--alerts,
+	.home-grid--primary,
+	.home-grid--secondary,
+	.home-grid--tables,
+	.home-split-list,
+	.home-financial-kpis,
+	.home-stock-summary,
+	.home-admin-summary,
+	.home-chart-legend {
+		grid-template-columns: 1fr;
+	}
+
+	.home-shortcuts {
+		grid-template-columns: 1fr;
+	}
+}
+
+@media (max-width: 767.98px) {
+	.home-overview {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+
+	.home-chart {
+		grid-template-columns: repeat(4, minmax(0, 1fr));
+		row-gap: 1rem;
+	}
+}
+
+@media (max-width: 575.98px) {
+	.home-overview {
+		grid-template-columns: 1fr;
+	}
+}

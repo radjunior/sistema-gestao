@@ -12,6 +12,35 @@
 	const infoInd = document.getElementById("info-modo-individual");
 	const infoMassa = document.getElementById("info-modo-massa");
 	const formMassa = document.getElementById("form-massa");
+	const btnAplicarMassa = document.getElementById("btn-aplicar-massa");
+	const csrfToken = document.querySelector('meta[name="_csrf"]')?.getAttribute("content");
+	const csrfHeader = document.querySelector('meta[name="_csrf_header"]')?.getAttribute("content");
+
+	function criarFormularioPost(action, campos) {
+		const form = document.createElement("form");
+		form.method = "POST";
+		form.action = action;
+		form.style.display = "none";
+
+		campos.forEach(({ nome, valor }) => {
+			const input = document.createElement("input");
+			input.type = "hidden";
+			input.name = nome;
+			input.value = valor;
+			form.appendChild(input);
+		});
+
+		if (csrfToken && csrfHeader) {
+			const csrfInput = document.createElement("input");
+			csrfInput.type = "hidden";
+			csrfInput.name = "_csrf";
+			csrfInput.value = csrfToken;
+			form.appendChild(csrfInput);
+		}
+
+		document.body.appendChild(form);
+		form.submit();
+	}
 
 	// Filtro client-side
 	function aplicarFiltro() {
@@ -40,7 +69,6 @@
 			delta.value = (parseInt(delta.value, 10) || 0) - 1;
 			sincronizarMassa(tr);
 		} else if (alvo.classList.contains("btn-aplicar-individual")) {
-			// Submete o form individual da linha
 			const v = parseInt(delta.value, 10) || 0;
 			if (v === 0) {
 				alert("Informe um valor de ajuste diferente de zero.");
@@ -48,7 +76,11 @@
 			}
 			const motivo = prompt("Motivo do ajuste (opcional):") || "";
 			tr.querySelector(".input-motivo").value = motivo;
-			tr.querySelector(".form-individual").submit();
+			criarFormularioPost("/cadastro/estoque/ajuste", [
+				{ nome: "produtoId", valor: tr.querySelector(".produto-id").value },
+				{ nome: "delta", valor: v },
+				{ nome: "motivo", valor: motivo }
+			]);
 		}
 	});
 
@@ -89,32 +121,39 @@
 		});
 	});
 
-	// Antes de submeter em massa, habilitar os hidden (produtoIds) das linhas marcadas
-	formMassa.addEventListener("submit", ev => {
+	// Submissao em massa sem form aninhado
+	btnAplicarMassa?.addEventListener("click", () => {
 		if (!modoMassa.checked) {
-			ev.preventDefault();
 			return;
 		}
 		const valor = parseInt(document.getElementById("valor-massa").value, 10) || 0;
 		if (valor <= 0) {
-			ev.preventDefault();
 			alert("Informe uma quantidade maior que zero para aplicar em massa.");
 			return;
 		}
+
+		const campos = [
+			{ nome: "tipoMovimento", valor: document.getElementById("tipo-movimento").value },
+			{ nome: "valorMassa", valor },
+			{ nome: "motivo", valor: formMassa.querySelector('input[name="motivo"]')?.value || "" }
+		];
+
 		let enviados = 0;
 		tabela.querySelectorAll("tbody tr").forEach(tr => {
 			const chk = tr.querySelector(".chk-linha");
-			const idHidden = tr.querySelector(".hidden-massa-id");
-			const deltaHidden = tr.querySelector(".hidden-massa-delta");
 			const elegivel = chk && chk.checked;
-			idHidden.disabled = !elegivel;
-			if (deltaHidden) deltaHidden.disabled = true;
-			if (elegivel) enviados++;
+			if (!elegivel) return;
+
+			campos.push({ nome: "produtoIds", valor: tr.querySelector(".hidden-massa-id").value });
+			enviados++;
 		});
+
 		if (enviados === 0) {
-			ev.preventDefault();
 			alert("Selecione pelo menos um produto.");
+			return;
 		}
+
+		criarFormularioPost("/cadastro/estoque/ajuste-massa", campos);
 	});
 
 	// Estado inicial

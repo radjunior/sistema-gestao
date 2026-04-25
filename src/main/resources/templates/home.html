@@ -10,29 +10,133 @@
 
 <body>
 	<div layout:fragment="conteudo">
-		<div class="container py-4">
-			<div class="row g-3">
-				<div class="col-md-6">
-					<div class="card">
-						<div class="card-body" style="height: 200px">
-							<h3 class="card-title" th:text="${adminSaas ? 'Painel SaaS' : (empresaAtual != null ? empresaAtual.nomeFantasia : 'Sistema de Gestao')}"></h3>
-							<p class="card-text mb-1" th:text="${usuarioLogado != null ? 'Usuario: ' + usuarioLogado.nomeCompleto : ''}"></p>
-							<p class="card-text mb-0" th:if="${empresaAtual != null}" th:text="${'Plano: ' + empresaAtual.plano + ' | Status: ' + empresaAtual.status}"></p>
+		<div
+			class="container-fluid home-dashboard"
+			id="home-dashboard"
+			th:attr="data-dashboard-role=${adminSaas ? 'saas' : 'empresa'}">
+
+			<section class="home-overview" id="home-overview"></section>
+
+			<section class="home-grid home-grid--alerts">
+				<div class="card home-section-card">
+					<div class="card-header home-section-card__header">
+						<div>
+							<h2 class="home-section-card__title">Alertas Prioritarios</h2>
+							<p class="home-section-card__subtitle">Pontos que merecem atencao imediata.</p>
+						</div>
+						<span class="home-section-card__badge" id="home-alert-badge"></span>
+					</div>
+					<div class="card-body">
+						<div class="home-alert-list" id="home-alert-list"></div>
+					</div>
+				</div>
+
+				<div class="card home-section-card">
+					<div class="card-header home-section-card__header">
+						<div>
+							<h2 class="home-section-card__title">Atalhos</h2>
+							<p class="home-section-card__subtitle">Acoes frequentes para o time operacional.</p>
+						</div>
+					</div>
+					<div class="card-body">
+						<div class="home-shortcuts" id="home-shortcuts"></div>
+					</div>
+				</div>
+			</section>
+
+			<section class="home-grid home-grid--primary">
+				<div class="card home-section-card">
+					<div class="card-header home-section-card__header">
+						<div>
+							<h2 class="home-section-card__title">Comercial</h2>
+							<p class="home-section-card__subtitle">Ritmo de vendas e desempenho dos itens.</p>
+						</div>
+					</div>
+					<div class="card-body">
+						<div class="home-chart-block">
+							<div class="home-chart" id="home-sales-chart"></div>
+							<div class="home-chart-legend" id="home-sales-legend"></div>
+						</div>
+						<div class="home-split-list">
+							<div>
+								<h3 class="home-list-title">Produtos mais vendidos</h3>
+								<div id="home-top-products"></div>
+							</div>
+							<div>
+								<h3 class="home-list-title">Categorias mais fortes</h3>
+								<div id="home-top-categories"></div>
+							</div>
 						</div>
 					</div>
 				</div>
-				<div class="col-md-6">
-					<div class="card">
-						<div class="card-body" style="height: 200px">
-							<h5 class="card-title">Proximos passos</h5>
-							<p class="card-text mb-2" th:if="${adminSaas}">Cadastre empresas, crie administradores iniciais e acompanhe o status das lojas.</p>
-							<p class="card-text mb-2" th:unless="${adminSaas}">Gerencie usuarios da sua empresa e mantenha os cadastros isolados por loja.</p>
-							<a th:if="${adminSaas}" th:href="@{/admin/empresas}" class="btn btn-primary">Ir para empresas</a>
-							<a th:unless="${adminSaas}" th:href="@{/empresa/usuarios}" class="btn btn-primary">Ir para usuarios</a>
+
+				<div class="card home-section-card">
+					<div class="card-header home-section-card__header">
+						<div>
+							<h2 class="home-section-card__title">Financeiro</h2>
+							<p class="home-section-card__subtitle">Caixa, recebiveis e compromissos do periodo.</p>
 						</div>
 					</div>
+					<div class="card-body">
+						<div class="home-financial-kpis" id="home-financial-kpis"></div>
+						<div class="home-mini-table" id="home-financial-table"></div>
+					</div>
 				</div>
-			</div>
+			</section>
+
+			<section class="home-grid home-grid--secondary">
+				<div class="card home-section-card">
+					<div class="card-header home-section-card__header">
+						<div>
+							<h2 class="home-section-card__title">Estoque</h2>
+							<p class="home-section-card__subtitle">Risco de ruptura, ajuste e giro recente.</p>
+						</div>
+					</div>
+					<div class="card-body">
+						<div class="home-stock-summary" id="home-stock-summary"></div>
+						<div class="home-mini-table" id="home-stock-table"></div>
+					</div>
+				</div>
+
+				<div class="card home-section-card">
+					<div class="card-header home-section-card__header">
+						<div>
+							<h2 class="home-section-card__title">Atividade Recente</h2>
+							<p class="home-section-card__subtitle">Ultimas operacoes registradas no sistema.</p>
+						</div>
+					</div>
+					<div class="card-body">
+						<div class="home-activity-list" id="home-activity-list"></div>
+					</div>
+				</div>
+			</section>
+
+			<section class="home-grid home-grid--tables">
+				<div class="card home-section-card">
+					<div class="card-header home-section-card__header">
+						<div>
+							<h2 class="home-section-card__title">Ultimas Vendas</h2>
+							<p class="home-section-card__subtitle">Pedidos mais recentes para acompanhamento rapido.</p>
+						</div>
+					</div>
+					<div class="card-body">
+						<div class="home-mini-table" id="home-sales-table"></div>
+					</div>
+				</div>
+
+				<div class="card home-section-card" id="home-admin-card">
+					<div class="card-header home-section-card__header">
+						<div>
+							<h2 class="home-section-card__title" id="home-admin-title"></h2>
+							<p class="home-section-card__subtitle" id="home-admin-subtitle"></p>
+						</div>
+					</div>
+					<div class="card-body">
+						<div class="home-admin-summary" id="home-admin-summary"></div>
+						<div class="home-mini-table" id="home-admin-table"></div>
+					</div>
+				</div>
+			</section>
 		</div>
 		<script type="module" th:src="@{/js/home.js}"></script>
 	</div>

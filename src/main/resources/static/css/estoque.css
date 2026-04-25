@@ -2,6 +2,28 @@
 	text-align: center;
 }
 
+#tb-estoque .form-individual {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	flex-wrap: nowrap;
+	width: 100%;
+}
+
+#tb-estoque .btn-decr,
+#tb-estoque .btn-incr {
+	width: 2rem;
+	height: 2rem;
+	padding: 0;
+	flex: 0 0 2rem;
+}
+
+#tb-estoque .input-delta {
+	width: 5.5rem;
+	min-width: 5.5rem;
+	flex: 0 0 5.5rem;
+}
+
 #tb-estoque tbody tr {
 	transition: background-color .15s ease-in-out;
 }
