@@ -38,8 +38,7 @@
 						</div>
 					</div>
 
-					<!-- Formulario em massa envolve a tabela -->
-					<form th:action="@{/cadastro/estoque/ajuste-massa}" method="POST" id="form-massa">
+					<div id="form-massa">
 						<div class="row g-2 mb-2 d-none" id="area-massa">
 							<div class="col-md-3">
 								<select class="form-select form-select-sm" name="tipoMovimento" id="tipo-movimento">
@@ -56,7 +55,7 @@
 									   placeholder="Motivo (opcional): entrada de NF 1234, contagem fisica, etc.">
 							</div>
 							<div class="col-md-3 d-grid">
-								<button type="submit" class="btn btn-success btn-sm">
+								<button type="button" class="btn btn-success btn-sm" id="btn-aplicar-massa">
 									<i class="bi bi-check2-all"></i> Aplicar em Massa
 								</button>
 							</div>
@@ -99,10 +98,8 @@
 											th:text="${qtd}"></td>
 										<td class="text-center text-muted" th:text="${minimo}"></td>
 										<td>
-											<!-- Ajuste individual (submit direto) -->
-											<form class="form-individual d-flex gap-1"
-												  th:action="@{/cadastro/estoque/ajuste}" method="POST">
-												<input type="hidden" name="produtoId" th:value="${p.id}">
+											<div class="form-individual d-flex gap-1 align-items-center">
+												<input type="hidden" class="produto-id" th:value="${p.id}">
 												<button type="button" class="btn btn-outline-secondary btn-sm btn-decr"
 														title="Diminuir 1">
 													<i class="bi bi-dash"></i>
@@ -113,12 +110,12 @@
 														title="Aumentar 1">
 													<i class="bi bi-plus"></i>
 												</button>
-												<input type="hidden" name="motivo" class="input-motivo">
-											</form>
+												<input type="hidden" class="input-motivo">
+											</div>
 
 											<!-- Campo oculto para modo massa (controlado via JS) -->
-											<input type="hidden" class="hidden-massa-id" name="produtoIds" th:value="${p.id}" disabled>
-											<input type="hidden" class="hidden-massa-delta" name="deltas" value="0" disabled>
+											<input type="hidden" class="hidden-massa-id" th:value="${p.id}" disabled>
+											<input type="hidden" class="hidden-massa-delta" value="0" disabled>
 										</td>
 										<td class="col-acao text-end">
 											<button type="button" class="btn btn-primary btn-sm btn-aplicar-individual">
@@ -129,7 +126,7 @@
 								</tbody>
 							</table>
 						</div>
-					</form>
+					</div>
 				</div>
 			</div>
 
