@@ -410,7 +410,7 @@ public class DashboardService {
 		}
 		for (Object[] row : dbRows) {
 			if (row[0] == null) continue;
-			LocalDate date = ((java.sql.Date) row[0]).toLocalDate();
+			LocalDate date = toLocalDate(row[0]);
 			BigDecimal total = row[1] instanceof BigDecimal bd ? bd : BigDecimal.valueOf(((Number) row[1]).doubleValue());
 			byDate.put(date, total);
 		}
@@ -419,6 +419,13 @@ public class DashboardService {
 						getDayLabel(e.getKey().getDayOfWeek()),
 						e.getValue().divide(BigDecimal.valueOf(1000), 1, RoundingMode.HALF_UP).doubleValue()))
 				.collect(Collectors.toList());
+	}
+
+	private LocalDate toLocalDate(Object value) {
+		if (value instanceof LocalDate ld) return ld;
+		if (value instanceof java.sql.Date sd) return sd.toLocalDate();
+		if (value instanceof java.time.LocalDateTime ldt) return ldt.toLocalDate();
+		throw new IllegalArgumentException("Tipo inesperado para coluna de data: " + value.getClass());
 	}
 
 	private String getDayLabel(DayOfWeek dow) {
