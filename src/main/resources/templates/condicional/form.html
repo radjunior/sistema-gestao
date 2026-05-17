@@ -40,6 +40,13 @@
 					<hr>
 
 					<h6>Itens</h6>
+					<div class="row g-2 mb-2">
+						<div class="col-md-5">
+							<input type="text" class="form-control" id="cond-barcode" autocomplete="off"
+								   placeholder="Bipar codigo de barras do produto...">
+							<div class="form-text">Bipe o codigo de barras para adicionar o produto automaticamente.</div>
+						</div>
+					</div>
 					<table class="table table-sm align-middle" id="tabela-itens">
 						<thead>
 							<tr>
@@ -111,14 +118,59 @@
 
 				Array.from(tabela.rows).forEach(bindLinha);
 
-				document.getElementById('btn-add-item').addEventListener('click', function () {
+				function novaLinha() {
 					const modelo = tabela.rows[0];
 					const nova = modelo.cloneNode(true);
 					nova.querySelectorAll('input').forEach(i => { i.value = i.name === 'quantidade' ? '1' : ''; });
 					nova.querySelector('select').selectedIndex = 0;
 					tabela.appendChild(nova);
 					bindLinha(nova);
-				});
+					return nova;
+				}
+
+				document.getElementById('btn-add-item').addEventListener('click', novaLinha);
+
+				// Bipagem de codigo de barras: resolve o produto e preenche/cria uma linha.
+				const inputBarcode = document.getElementById('cond-barcode');
+				if (inputBarcode) {
+					inputBarcode.addEventListener('keydown', async function (ev) {
+						if (ev.key !== 'Enter') return;
+						ev.preventDefault();
+						const codigo = inputBarcode.value.trim();
+						if (!codigo) return;
+						try {
+							const resp = await fetch('/api/produto/por-codigo-barra?codigo=' + encodeURIComponent(codigo));
+							if (!resp.ok) {
+								inputBarcode.classList.add('is-invalid');
+								return;
+							}
+							const p = await resp.json();
+							inputBarcode.classList.remove('is-invalid');
+
+							// Procura linha cujo produto ja seja esse: incrementa a quantidade.
+							let alvo = null;
+							for (const tr of Array.from(tabela.rows)) {
+								if (tr.querySelector('.produto-select').value === String(p.id)) { alvo = tr; break; }
+							}
+							if (alvo) {
+								const qtd = alvo.querySelector('input[name="quantidade"]');
+								qtd.value = String((parseInt(qtd.value, 10) || 0) + 1);
+							} else {
+								// Usa a primeira linha vazia ou cria uma nova.
+								alvo = Array.from(tabela.rows).find(tr => !tr.querySelector('.produto-select').value);
+								if (!alvo) alvo = novaLinha();
+								alvo.querySelector('.produto-select').value = String(p.id);
+								alvo.querySelector('input[name="quantidade"]').value = '1';
+								const preco = alvo.querySelector('.preco-input');
+								if (preco && !preco.value) preco.value = Number(p.preco).toFixed(2);
+							}
+							inputBarcode.value = '';
+							inputBarcode.focus();
+						} catch (e) {
+							console.error('Erro ao bipar codigo de barras:', e);
+						}
+					});
+				}
 			})();
 		</script>
 	</div>

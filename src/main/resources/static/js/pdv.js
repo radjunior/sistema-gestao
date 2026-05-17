@@ -1,3 +1,5 @@
+import { resolverCodigoBarra } from "./scanner.js";
+
 window.confirmarExclusao = function(botao) {
 	const nome = botao.getAttribute("data-nome");
 	return confirm(`Deseja realmente excluir: ${nome}?`);
@@ -13,6 +15,21 @@ window.confirmarExclusao = function(botao) {
 	const btnAdicionar = document.getElementById("btn-adicionar-item");
 	const info = document.getElementById("busca-produto-info");
 	const inputQtd = document.getElementById("input-quantidade");
+	const formAdicionar = document.getElementById("form-adicionar-item");
+
+	function adicionarAoCarrinho(p) {
+		if (!formAdicionar) {
+			selecionar(p);
+			return;
+		}
+		hiddenId.value = p.id;
+		input.value = p.descricao;
+		if (inputQtd && (!inputQtd.value || parseInt(inputQtd.value, 10) <= 0)) {
+			inputQtd.value = "1";
+		}
+		btnAdicionar.disabled = false;
+		formAdicionar.submit();
+	}
 
 	let timer = null;
 	let ultimosResultados = [];
@@ -108,29 +125,44 @@ window.confirmarExclusao = function(botao) {
 		timer = setTimeout(() => buscar(termo), 180);
 	});
 
-	input.addEventListener("keydown", ev => {
-		if (dropdown.classList.contains("d-none") || !ultimosResultados.length) {
-			// Enter sem dropdown: se so ha 1 match exato por codigo de barras, permite busca imediata
-			if (ev.key === "Enter" && input.value.trim().length >= 2) {
-				ev.preventDefault();
-				buscar(input.value.trim());
-			}
-			return;
-		}
-		if (ev.key === "ArrowDown") {
+	input.addEventListener("keydown", async ev => {
+		if (ev.key === "ArrowDown" && !dropdown.classList.contains("d-none") && ultimosResultados.length) {
 			ev.preventDefault();
 			indiceAtivo = Math.min(indiceAtivo + 1, ultimosResultados.length - 1);
 			destacar(indiceAtivo);
-		} else if (ev.key === "ArrowUp") {
+			return;
+		}
+		if (ev.key === "ArrowUp" && !dropdown.classList.contains("d-none") && ultimosResultados.length) {
 			ev.preventDefault();
 			indiceAtivo = Math.max(indiceAtivo - 1, 0);
 			destacar(indiceAtivo);
-		} else if (ev.key === "Enter") {
-			ev.preventDefault();
+			return;
+		}
+		if (ev.key === "Escape") {
+			esconder();
+			return;
+		}
+		if (ev.key !== "Enter") {
+			return;
+		}
+		// Enter (digitado ou disparado pelo leitor de codigo de barras):
+		// tenta resolver por codigo de barras exato e adiciona direto ao carrinho.
+		ev.preventDefault();
+		const valor = input.value.trim();
+		if (valor.length >= 1) {
+			const produtoBipado = await resolverCodigoBarra(valor);
+			if (produtoBipado) {
+				esconder();
+				adicionarAoCarrinho(produtoBipado);
+				return;
+			}
+		}
+		// Sem match por codigo de barras: comportamento normal de autocomplete.
+		if (!dropdown.classList.contains("d-none") && ultimosResultados.length) {
 			const alvo = indiceAtivo >= 0 ? ultimosResultados[indiceAtivo] : ultimosResultados[0];
 			if (alvo) selecionar(alvo);
-		} else if (ev.key === "Escape") {
-			esconder();
+		} else if (valor.length >= 2) {
+			buscar(valor);
 		}
 	});
 

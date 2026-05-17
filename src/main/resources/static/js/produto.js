@@ -40,7 +40,13 @@ document.addEventListener("DOMContentLoaded", function() {
 				const tamanhoLinha = (row.tamanhoId || "").toString();
 				const codigoFabricanteLinha = (row.codigoFabricante || "").toString().toLowerCase();
 
-				const atendeDescricao = !filters.descricao || descricaoLinha.includes(filters.descricao);
+				const codigoBarraLinha = (row.codigoBarra || "").toString().toLowerCase();
+					const skuLinha = (row.sku || "").toString().toLowerCase();
+					// O campo de busca tambem aceita codigo de barras bipado / SKU.
+					const atendeDescricao = !filters.descricao
+						|| descricaoLinha.includes(filters.descricao)
+						|| codigoBarraLinha.includes(filters.descricao)
+						|| skuLinha.includes(filters.descricao);
 				const atendeMarca = !filters.marcaId || marcaLinha === filters.marcaId;
 				const atendeGrupo = !filters.grupoId || grupoLinha === filters.grupoId;
 				const atendeSubgrupo = !filters.subgrupoId || subgrupoLinha === filters.subgrupoId;

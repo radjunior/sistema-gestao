@@ -28,6 +28,8 @@ public interface ProdutoRepository extends JpaRepository<Produto, Long> {
 
 	Optional<Produto> findByIdAndEmpresaId(Long id, Long empresaId);
 
+	Optional<Produto> findFirstByEmpresaIdAndCodigoBarraAndAtivoTrue(Long empresaId, String codigoBarra);
+
 	boolean existsByDescricaoIgnoreCaseAndEmpresaId(String descricao, Long empresaId);
 
 	boolean existsByDescricaoIgnoreCaseAndEmpresaIdAndIdNot(String descricao, Long empresaId, Long id);
