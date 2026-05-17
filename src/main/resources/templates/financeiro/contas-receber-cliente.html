@@ -132,6 +132,14 @@
 								<label class="form-label">Valor Recebido *</label>
 								<input type="number" name="valorRecebido" id="mq-valor-recebido" class="form-control" step="0.01" min="0.01" required>
 							</div>
+							<div class="col-12">
+								<div class="form-text">
+									Pode receber valor diferente da parcela. O saldo restante é
+									redistribuído igualmente entre as parcelas em aberto; excedente
+									que cobre tudo quita as próximas; faltante na última parcela gera
+									uma nova parcela automaticamente.
+								</div>
+							</div>
 							<div class="col-6">
 								<label class="form-label">Data do Pagamento *</label>
 								<input type="date" name="dataPagamento" id="mq-data" class="form-control" required th:value="${hoje}">

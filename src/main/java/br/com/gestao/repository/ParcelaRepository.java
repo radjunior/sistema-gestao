@@ -21,6 +21,8 @@ public interface ParcelaRepository extends JpaRepository<Parcela, Long> {
 
 	List<Parcela> findAllByEmpresaIdAndClienteIdOrderByDataVencimentoAsc(Long empresaId, Long clienteId);
 
+	List<Parcela> findAllByVendaIdOrderByNumeroParcelaAsc(Long vendaId);
+
 	List<Parcela> findAllByEmpresaIdAndStatusInOrderByDataVencimentoAsc(Long empresaId, List<StatusParcela> status);
 
 	List<Parcela> findAllByEmpresaIdAndStatusAndDataVencimentoLessThan(Long empresaId, StatusParcela status, LocalDate data);
