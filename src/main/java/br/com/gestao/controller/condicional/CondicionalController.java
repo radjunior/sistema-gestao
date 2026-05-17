@@ -137,35 +137,68 @@ public class CondicionalController extends DefaultController {
 		return PAGINA_DETALHE;
 	}
 
-	@PostMapping("/{id}/devolver")
-	public String devolver(RedirectAttributes redirectAttributes, @PathVariable Long id,
+	@PostMapping("/{id}/movimentar")
+	public String movimentar(RedirectAttributes redirectAttributes, @PathVariable Long id,
 			@RequestParam(name = "itemId", required = false) List<Long> itemIds,
-			@RequestParam(name = "quantidade", required = false) List<Integer> quantidades) {
+			@RequestParam(name = "acao", required = false) List<String> acoes,
+			@RequestParam(name = "quantidade", required = false) List<Integer> quantidades,
+			@RequestParam(name = "precoUnitarioOverride", required = false) List<BigDecimal> precos) {
 		try {
-			List<MovimentoItemForm> movs = montarMovimentos(itemIds, quantidades, null);
-			condicionalService.devolverItens(id, movs);
-			showSucesso(redirectAttributes, "Devolução registrada com sucesso.");
+			List<MovimentoItemForm> devolucoes = new ArrayList<>();
+			List<MovimentoItemForm> conversoes = new ArrayList<>();
+			if (itemIds != null) {
+				for (int i = 0; i < itemIds.size(); i++) {
+					Long itemId = itemIds.get(i);
+					String acao = acoes != null && i < acoes.size() ? acoes.get(i) : null;
+					Integer qtd = quantidades != null && i < quantidades.size() ? quantidades.get(i) : null;
+					if (itemId == null || acao == null || qtd == null || qtd <= 0) {
+						continue;
+					}
+					MovimentoItemForm m = new MovimentoItemForm();
+					m.setCondicionalItemId(itemId);
+					m.setQuantidade(qtd);
+					if ("CONVERTER".equals(acao)) {
+						if (precos != null && i < precos.size()) {
+							m.setPrecoUnitarioOverride(precos.get(i));
+						}
+						conversoes.add(m);
+					} else if ("DEVOLVER".equals(acao)) {
+						devolucoes.add(m);
+					}
+				}
+			}
+			if (devolucoes.isEmpty() && conversoes.isEmpty()) {
+				throw new Exception("Selecione a ação e a quantidade de ao menos um item.");
+			}
+			StringBuilder msg = new StringBuilder();
+			if (!devolucoes.isEmpty()) {
+				condicionalService.devolverItens(id, devolucoes);
+				msg.append("Devolução registrada. ");
+			}
+			if (!conversoes.isEmpty()) {
+				Venda venda = condicionalService.converterEmVenda(id, conversoes);
+				msg.append("Itens convertidos na venda #").append(venda.getId())
+						.append(" — finalize o pagamento no módulo de Vendas.");
+			}
+			showSucesso(redirectAttributes, msg.toString().trim());
 		} catch (Exception e) {
 			showError(redirectAttributes, e.getMessage());
 		}
 		return "redirect:/condicionais/" + id;
 	}
 
-	@PostMapping("/{id}/converter")
-	public String converter(RedirectAttributes redirectAttributes, @PathVariable Long id,
-			@RequestParam(name = "itemId", required = false) List<Long> itemIds,
-			@RequestParam(name = "quantidade", required = false) List<Integer> quantidades,
-			@RequestParam(name = "precoUnitarioOverride", required = false) List<BigDecimal> precos) {
+	@PostMapping("/{id}/adicionar-produto")
+	public String adicionarProduto(RedirectAttributes redirectAttributes, @PathVariable Long id,
+			@RequestParam Long produtoId,
+			@RequestParam Integer quantidade,
+			@RequestParam(required = false) BigDecimal precoUnitario) {
 		try {
-			List<MovimentoItemForm> movs = montarMovimentos(itemIds, quantidades, precos);
-			Venda venda = condicionalService.converterEmVenda(id, movs);
-			showSucesso(redirectAttributes,
-					"Itens convertidos. Venda #" + venda.getId() + " aberta — finalize o pagamento no módulo de Vendas.");
-			return "redirect:/condicionais/" + id;
+			condicionalService.adicionarItem(id, produtoId, quantidade, precoUnitario);
+			showSucesso(redirectAttributes, "Produto adicionado à condicional.");
 		} catch (Exception e) {
 			showError(redirectAttributes, e.getMessage());
-			return "redirect:/condicionais/" + id;
 		}
+		return "redirect:/condicionais/" + id;
 	}
 
 	@PostMapping("/{id}/cancelar")
@@ -199,29 +232,6 @@ public class CondicionalController extends DefaultController {
 		model.addAttribute("itens", condicionalService.timelineProduto(produtoId));
 		model.addAttribute("hoje", LocalDate.now());
 		return PAGINA_TIMELINE_PRODUTO;
-	}
-
-	private List<MovimentoItemForm> montarMovimentos(List<Long> itemIds, List<Integer> quantidades,
-			List<BigDecimal> precos) {
-		List<MovimentoItemForm> movs = new ArrayList<>();
-		if (itemIds == null) {
-			return movs;
-		}
-		for (int i = 0; i < itemIds.size(); i++) {
-			Long itemId = itemIds.get(i);
-			Integer qtd = quantidades != null && i < quantidades.size() ? quantidades.get(i) : null;
-			if (itemId == null || qtd == null || qtd <= 0) {
-				continue;
-			}
-			MovimentoItemForm m = new MovimentoItemForm();
-			m.setCondicionalItemId(itemId);
-			m.setQuantidade(qtd);
-			if (precos != null && i < precos.size()) {
-				m.setPrecoUnitarioOverride(precos.get(i));
-			}
-			movs.add(m);
-		}
-		return movs;
 	}
 
 }

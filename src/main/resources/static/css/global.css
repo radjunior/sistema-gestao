@@ -495,6 +495,23 @@ textarea {
 	color: var(--color-text);
 }
 
+/* Cards que hospedam autocomplete de produto/cliente precisam deixar o
+   dropdown "vazar" para fora do card (que por padrao usa overflow:hidden). */
+.card:has(.busca-produto-campo),
+.card:has(#busca-cliente),
+.card:has(#busca-produto),
+.card:has(.busca-produto-campo) .card-body,
+.card:has(#busca-cliente) .card-body,
+.card:has(#busca-produto) .card-body {
+	overflow: visible;
+}
+
+.busca-produto-dropdown,
+#busca-cliente-dropdown,
+#busca-produto-dropdown {
+	z-index: 1080;
+}
+
 .card-header,
 .modal-header,
 .modal-footer {

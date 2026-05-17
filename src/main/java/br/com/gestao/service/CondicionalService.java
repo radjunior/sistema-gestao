@@ -178,6 +178,41 @@ public class CondicionalService {
 	}
 
 	@Transactional
+	public Condicional adicionarItem(Long condicionalId, Long produtoId, Integer quantidade,
+			BigDecimal precoUnitario) throws Exception {
+		Condicional condicional = consultarPorId(condicionalId);
+		validarMovimentavel(condicional);
+		if (produtoId == null) {
+			throw new Exception("Informe o produto.");
+		}
+		if (quantidade == null || quantidade <= 0) {
+			throw new Exception("Quantidade inválida.");
+		}
+		if (precoUnitario != null && precoUnitario.signum() < 0) {
+			throw new Exception("Preço unitário não pode ser negativo.");
+		}
+		Empresa empresa = condicional.getEmpresa();
+		Produto produto = produtoRepository.findByIdAndEmpresaId(produtoId, empresa.getId())
+				.orElseThrow(() -> new EntityNotFoundException("Produto não encontrado!"));
+
+		CondicionalItem item = new CondicionalItem();
+		item.setProduto(produto);
+		item.setQuantidade(quantidade);
+		item.setQuantidadeDevolvida(0);
+		item.setQuantidadeConvertida(0);
+		BigDecimal preco = precoUnitario != null ? precoUnitario : produto.getPreco();
+		if (preco == null) {
+			preco = BigDecimal.ZERO;
+		}
+		item.setPrecoUnitario(preco.setScale(2, RoundingMode.HALF_UP));
+		item.setStatus(StatusItemCondicional.EM_PODER_CLIENTE);
+		condicional.adicionarItem(item);
+
+		estoqueService.ajustar(produto.getId(), -quantidade, "CONDICIONAL_SAIDA");
+		return condicionalRepository.save(condicional);
+	}
+
+	@Transactional
 	public Condicional cancelar(Long id) throws Exception {
 		Condicional condicional = consultarPorId(id);
 		if (condicional.getStatus() == StatusCondicional.FINALIZADA

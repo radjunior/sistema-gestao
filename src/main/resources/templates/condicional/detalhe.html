@@ -66,10 +66,43 @@
 				</div>
 			</div>
 
-			<!-- Devolver -->
+			<!-- Adicionar produto (condicional ainda aberta) -->
 			<div class="card mt-3" th:if="${condicional.status.name() != 'FINALIZADA' and condicional.status.name() != 'CANCELADA'}">
-				<div class="card-header">Registrar devolução</div>
-				<form th:action="@{/condicionais/{id}/devolver(id=${condicional.id})}" method="post" class="card-body">
+				<div class="card-header"><i class="bi bi-plus-circle"></i> Adicionar produto</div>
+				<form th:action="@{/condicionais/{id}/adicionar-produto(id=${condicional.id})}" method="post"
+					  class="card-body row g-3" id="form-add-produto">
+					<div class="col-md-5 position-relative">
+						<label class="form-label">Produto</label>
+						<input type="text" class="form-control busca-produto-campo" id="cond-add-busca"
+							   autocomplete="off" placeholder="Digite ou bipe o código de barras...">
+						<input type="hidden" name="produtoId" id="cond-add-produto-id" required>
+						<div id="cond-add-dropdown"
+							 class="list-group position-absolute w-100 shadow-sm d-none busca-produto-dropdown"
+							 style="max-height: 320px; overflow-y: auto;"></div>
+						<div class="form-text" id="cond-add-info">Bipe o código de barras para adicionar direto.</div>
+					</div>
+					<div class="col-md-2">
+						<label class="form-label">Quantidade</label>
+						<input type="number" class="form-control" name="quantidade" id="cond-add-qtd"
+							   min="1" value="1" required>
+					</div>
+					<div class="col-md-3">
+						<label class="form-label">Preço unitário (R$)</label>
+						<input type="number" class="form-control" name="precoUnitario" id="cond-add-preco"
+							   step="0.01" min="0" placeholder="auto (preço do produto)">
+					</div>
+					<div class="col-md-2 d-flex align-items-end">
+						<button type="submit" class="btn btn-primary w-100" id="cond-add-btn" disabled>
+							<i class="bi bi-plus"></i> Adicionar
+						</button>
+					</div>
+				</form>
+			</div>
+
+			<!-- Movimentar itens (devolução / conversão unificadas) -->
+			<div class="card mt-3" th:if="${condicional.status.name() != 'FINALIZADA' and condicional.status.name() != 'CANCELADA'}">
+				<div class="card-header">Movimentar itens (devolução / conversão em venda)</div>
+				<form th:action="@{/condicionais/{id}/movimentar(id=${condicional.id})}" method="post" class="card-body">
 					<table class="table table-sm align-middle">
 						<thead>
 							<tr>
@@ -78,7 +111,10 @@
 								<th class="text-center">Devolvido</th>
 								<th class="text-center">Convertido</th>
 								<th class="text-center">Pendente</th>
-								<th style="width: 130px;">Devolver agora</th>
+								<th class="text-end">Preço travado</th>
+								<th style="width: 150px;">Ação</th>
+								<th style="width: 110px;">Quantidade</th>
+								<th style="width: 160px;">Sobrescrever preço</th>
 							</tr>
 						</thead>
 						<tbody>
@@ -91,45 +127,16 @@
 								<td class="text-center" th:text="${i.quantidadeDevolvida}"></td>
 								<td class="text-center" th:text="${i.quantidadeConvertida}"></td>
 								<td class="text-center fw-bold" th:text="${i.quantidadePendente}"></td>
-								<td>
-									<input type="number" class="form-control form-control-sm" name="quantidade"
-										   min="0" th:max="${i.quantidadePendente}" value="0"
-										   th:disabled="${i.quantidadePendente == 0}">
-								</td>
-							</tr>
-						</tbody>
-					</table>
-					<div class="text-end">
-						<button type="submit" class="btn btn-warning">
-							<i class="bi bi-arrow-counterclockwise"></i> Devolver
-						</button>
-					</div>
-				</form>
-			</div>
-
-			<!-- Converter em venda -->
-			<div class="card mt-3" th:if="${condicional.status.name() != 'FINALIZADA' and condicional.status.name() != 'CANCELADA'}">
-				<div class="card-header">Converter em venda</div>
-				<form th:action="@{/condicionais/{id}/converter(id=${condicional.id})}" method="post" class="card-body">
-					<table class="table table-sm align-middle">
-						<thead>
-							<tr>
-								<th>Produto</th>
-								<th class="text-center">Pendente</th>
-								<th class="text-end">Preço travado</th>
-								<th style="width: 130px;">Converter</th>
-								<th style="width: 160px;">Sobrescrever preço</th>
-							</tr>
-						</thead>
-						<tbody>
-							<tr th:each="i : ${condicional.itens}">
-								<td>
-									<input type="hidden" name="itemId" th:value="${i.id}">
-									<span th:text="${i.produto.descricao}"></span>
-								</td>
-								<td class="text-center fw-bold" th:text="${i.quantidadePendente}"></td>
 								<td class="text-end"
 									th:text="${'R$ ' + #numbers.formatDecimal(i.precoUnitario, 1, 'POINT', 2, 'COMMA')}"></td>
+								<td>
+									<select class="form-select form-select-sm" name="acao"
+											th:disabled="${i.quantidadePendente == 0}">
+										<option value="NENHUM" selected>—</option>
+										<option value="DEVOLVER">Devolver</option>
+										<option value="CONVERTER">Converter em venda</option>
+									</select>
+								</td>
 								<td>
 									<input type="number" class="form-control form-control-sm" name="quantidade"
 										   min="0" th:max="${i.quantidadePendente}" value="0"
@@ -137,14 +144,18 @@
 								</td>
 								<td>
 									<input type="number" class="form-control form-control-sm" name="precoUnitarioOverride"
-										   step="0.01" min="0" placeholder="opcional">
+										   step="0.01" min="0" placeholder="opcional (conversão)">
 								</td>
 							</tr>
 						</tbody>
 					</table>
+					<div class="text-muted small mb-2">
+						Escolha por item se deseja <strong>devolver</strong> ou <strong>converter em venda</strong>,
+						informe a quantidade e confirme. O preço só é usado nas conversões.
+					</div>
 					<div class="text-end">
-						<button type="submit" class="btn btn-success">
-							<i class="bi bi-cash-coin"></i> Converter em venda
+						<button type="submit" class="btn btn-primary">
+							<i class="bi bi-check2-circle"></i> Confirmar movimentações
 						</button>
 					</div>
 				</form>
@@ -207,6 +218,7 @@
 				</div>
 			</div>
 		</div>
+		<script type="module" th:src="@{/js/condicional-detalhe.js}"></script>
 	</div>
 </body>
 </html>
