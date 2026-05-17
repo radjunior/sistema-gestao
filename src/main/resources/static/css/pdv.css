@@ -1,1 +1,20 @@
+/* Os cards que contem os autocompletes precisam permitir que o dropdown
+   "vaze" para fora dos limites do card. O .card global usa overflow:hidden
+   (global.css), o que escondia a lista de clientes/produtos. */
+.card:has(#busca-cliente),
+.card:has(#busca-produto),
+.card:has(.busca-produto-campo) {
+	overflow: visible;
+}
 
+.card:has(#busca-cliente) .card-body,
+.card:has(#busca-produto) .card-body,
+.card:has(.busca-produto-campo) .card-body {
+	overflow: visible;
+}
+
+#busca-cliente-dropdown,
+#busca-produto-dropdown,
+.busca-produto-dropdown {
+	z-index: 1080;
+}
