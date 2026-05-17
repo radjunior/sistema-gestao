@@ -1,0 +1,222 @@
+<html lang="pt-br"
+	  xmlns:th="http://www.thymeleaf.org"
+	  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	  layout:decorate="~{template}">
+
+<head>
+	<title>Caixa</title>
+</head>
+
+<body>
+	<div layout:fragment="conteudo">
+		<div class="container-fluid">
+
+			<h4 class="mt-2 mb-3">Controle de Caixa</h4>
+
+			<!-- Sem caixa aberto: abertura -->
+			<div class="card mt-2" th:if="${caixaAberto == null}">
+				<div class="card-header">Abrir Caixa</div>
+				<form th:action="@{/venda/caixa/abrir}" method="post" class="card-body row g-3">
+					<div class="col-md-3">
+						<label class="form-label">Fundo de troco (R$)</label>
+						<input type="number" step="0.01" min="0" name="valorAbertura" class="form-control" value="0">
+					</div>
+					<div class="col-md-7">
+						<label class="form-label">Observacao</label>
+						<input type="text" name="observacao" class="form-control" maxlength="500">
+					</div>
+					<div class="col-md-2 d-flex align-items-end">
+						<button type="submit" class="btn btn-primary w-100">Abrir Caixa</button>
+					</div>
+				</form>
+			</div>
+
+			<!-- Caixa aberto -->
+			<div th:if="${caixaAberto != null}">
+				<div class="row g-3 mt-1">
+					<div class="col-md-3">
+						<div class="card kpi-card border-primary">
+							<div class="card-body">
+								<div class="kpi-label">Dinheiro Esperado</div>
+								<div class="kpi-value text-primary"
+									 th:text="${'R$ ' + #numbers.formatDecimal(resumo.dinheiroEsperado, 1, 'POINT', 2, 'COMMA')}"></div>
+							</div>
+						</div>
+					</div>
+					<div class="col-md-3">
+						<div class="card kpi-card border-success">
+							<div class="card-body">
+								<div class="kpi-label">Total em Vendas</div>
+								<div class="kpi-value text-success"
+									 th:text="${'R$ ' + #numbers.formatDecimal(resumo.totalVendas, 1, 'POINT', 2, 'COMMA')}"></div>
+							</div>
+						</div>
+					</div>
+					<div class="col-md-3">
+						<div class="card kpi-card border-info">
+							<div class="card-body">
+								<div class="kpi-label">Fundo de Abertura</div>
+								<div class="kpi-value text-info"
+									 th:text="${'R$ ' + #numbers.formatDecimal(resumo.valorAbertura, 1, 'POINT', 2, 'COMMA')}"></div>
+							</div>
+						</div>
+					</div>
+					<div class="col-md-3">
+						<div class="card kpi-card border-warning">
+							<div class="card-body">
+								<div class="kpi-label">Aberto em</div>
+								<div class="kpi-value text-warning"
+									 th:text="${#temporals.format(caixaAberto.dataAbertura, 'dd/MM/yyyy HH:mm')}"></div>
+							</div>
+						</div>
+					</div>
+				</div>
+
+				<div class="row g-3 mt-1">
+					<div class="col-md-4">
+						<div class="card">
+							<div class="card-header">Sangria</div>
+							<form th:action="@{/venda/caixa/sangria}" method="post" class="card-body">
+								<div class="mb-2">
+									<label class="form-label">Valor (R$)</label>
+									<input type="number" step="0.01" min="0.01" name="valor" class="form-control" required>
+								</div>
+								<div class="mb-2">
+									<label class="form-label">Descricao</label>
+									<input type="text" name="descricao" class="form-control" maxlength="255">
+								</div>
+								<button type="submit" class="btn btn-outline-danger w-100">Registrar Sangria</button>
+							</form>
+						</div>
+					</div>
+					<div class="col-md-4">
+						<div class="card">
+							<div class="card-header">Suprimento</div>
+							<form th:action="@{/venda/caixa/suprimento}" method="post" class="card-body">
+								<div class="mb-2">
+									<label class="form-label">Valor (R$)</label>
+									<input type="number" step="0.01" min="0.01" name="valor" class="form-control" required>
+								</div>
+								<div class="mb-2">
+									<label class="form-label">Descricao</label>
+									<input type="text" name="descricao" class="form-control" maxlength="255">
+								</div>
+								<button type="submit" class="btn btn-outline-success w-100">Registrar Suprimento</button>
+							</form>
+						</div>
+					</div>
+					<div class="col-md-4">
+						<div class="card">
+							<div class="card-header">Fechar Caixa</div>
+							<form th:action="@{/venda/caixa/fechar}" method="post" class="card-body"
+								  onsubmit="return confirm('Confirma o fechamento do caixa?');">
+								<div class="mb-2">
+									<label class="form-label">Valor contado em dinheiro (R$)</label>
+									<input type="number" step="0.01" min="0" name="valorInformado" class="form-control" required>
+								</div>
+								<div class="mb-2">
+									<label class="form-label">Observacao</label>
+									<input type="text" name="observacao" class="form-control" maxlength="500">
+								</div>
+								<button type="submit" class="btn btn-primary w-100">Fechar Caixa</button>
+							</form>
+						</div>
+					</div>
+				</div>
+
+				<div class="card mt-3">
+					<div class="card-header">Movimentacoes do Caixa</div>
+					<div class="card-body p-0">
+						<table class="table table-sm mb-0">
+							<thead>
+								<tr>
+									<th>Hora</th>
+									<th>Tipo</th>
+									<th>Forma</th>
+									<th>Descricao</th>
+									<th class="text-end">Valor</th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr th:each="mov : ${caixaAberto.movimentacoes}">
+									<td th:text="${#temporals.format(mov.dataHora, 'dd/MM HH:mm')}"></td>
+									<td th:text="${mov.tipo.descricao}"></td>
+									<td th:text="${mov.formaPagamento != null ? mov.formaPagamento.descricao : '-'}"></td>
+									<td th:text="${mov.descricao}"></td>
+									<td class="text-end"
+										th:classappend="${mov.tipo.entrada} ? 'text-success' : 'text-danger'"
+										th:text="${(mov.tipo.entrada ? '+ ' : '- ') + 'R$ ' + #numbers.formatDecimal(mov.valor, 1, 'POINT', 2, 'COMMA')}"></td>
+								</tr>
+								<tr th:if="${caixaAberto.movimentacoes.isEmpty()}">
+									<td colspan="5" class="text-center text-muted">Sem movimentacoes.</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+				</div>
+			</div>
+
+			<!-- Detalhe de caixa fechado -->
+			<div class="card mt-3" th:if="${caixaDetalhe != null}">
+				<div class="card-header">
+					Caixa #<span th:text="${caixaDetalhe.id}"></span> -
+					<span th:text="${caixaDetalhe.status.descricao}"></span>
+				</div>
+				<div class="card-body">
+					<div class="row">
+						<div class="col-md-3"><strong>Abertura:</strong>
+							<span th:text="${#temporals.format(caixaDetalhe.dataAbertura, 'dd/MM/yyyy HH:mm')}"></span></div>
+						<div class="col-md-3"><strong>Fechamento:</strong>
+							<span th:text="${caixaDetalhe.dataFechamento != null ? #temporals.format(caixaDetalhe.dataFechamento, 'dd/MM/yyyy HH:mm') : '-'}"></span></div>
+						<div class="col-md-2"><strong>Calculado:</strong>
+							<span th:text="${'R$ ' + #numbers.formatDecimal(caixaDetalhe.valorFechamentoCalculado != null ? caixaDetalhe.valorFechamentoCalculado : 0, 1, 'POINT', 2, 'COMMA')}"></span></div>
+						<div class="col-md-2"><strong>Informado:</strong>
+							<span th:text="${'R$ ' + #numbers.formatDecimal(caixaDetalhe.valorFechamentoInformado != null ? caixaDetalhe.valorFechamentoInformado : 0, 1, 'POINT', 2, 'COMMA')}"></span></div>
+						<div class="col-md-2"><strong>Diferenca:</strong>
+							<span th:classappend="${caixaDetalhe.diferenca != null and caixaDetalhe.diferenca.signum() lt 0} ? 'text-danger' : 'text-success'"
+								  th:text="${'R$ ' + #numbers.formatDecimal(caixaDetalhe.diferenca != null ? caixaDetalhe.diferenca : 0, 1, 'POINT', 2, 'COMMA')}"></span></div>
+					</div>
+				</div>
+			</div>
+
+			<!-- Historico -->
+			<div class="card mt-3">
+				<div class="card-header">Historico de Caixas</div>
+				<div class="card-body p-0">
+					<table class="table table-sm mb-0">
+						<thead>
+							<tr>
+								<th>#</th>
+								<th>Operador</th>
+								<th>Abertura</th>
+								<th>Fechamento</th>
+								<th>Status</th>
+								<th class="text-end">Diferenca</th>
+								<th></th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr th:each="c : ${historico}">
+								<td th:text="${c.id}"></td>
+								<td th:text="${c.usuario != null ? c.usuario.nomeCompleto : '-'}"></td>
+								<td th:text="${#temporals.format(c.dataAbertura, 'dd/MM/yyyy HH:mm')}"></td>
+								<td th:text="${c.dataFechamento != null ? #temporals.format(c.dataFechamento, 'dd/MM/yyyy HH:mm') : '-'}"></td>
+								<td th:text="${c.status.descricao}"></td>
+								<td class="text-end"
+									th:text="${c.diferenca != null ? 'R$ ' + #numbers.formatDecimal(c.diferenca, 1, 'POINT', 2, 'COMMA') : '-'}"></td>
+								<td class="text-end">
+									<a class="btn btn-sm btn-outline-primary" th:href="@{'/venda/caixa/' + ${c.id}}">Ver</a>
+								</td>
+							</tr>
+							<tr th:if="${historico.isEmpty()}">
+								<td colspan="7" class="text-center text-muted">Nenhum caixa registrado.</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+			</div>
+
+		</div>
+	</div>
+</body>
+</html>

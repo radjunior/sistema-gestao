@@ -16,7 +16,14 @@
 			<div th:if="${vendaDetalhe != null}" class="card mt-3 border-info">
 				<div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
 					<span><i class="bi bi-receipt"></i> Detalhes da Venda #<span th:text="${vendaDetalhe.id}"></span></span>
-					<a th:href="@{/venda/vendas}" class="btn btn-sm btn-outline-light"><i class="bi bi-x"></i> Fechar</a>
+					<span>
+						<a th:if="${vendaDetalhe.status.name() == 'FINALIZADA'}"
+						   th:href="@{'/venda/devolucao/' + ${vendaDetalhe.id}}"
+						   class="btn btn-sm btn-warning">
+							<i class="bi bi-arrow-return-left"></i> Devolver
+						</a>
+						<a th:href="@{/venda/vendas}" class="btn btn-sm btn-outline-light"><i class="bi bi-x"></i> Fechar</a>
+					</span>
 				</div>
 				<div class="card-body row">
 					<div class="col-md-8">

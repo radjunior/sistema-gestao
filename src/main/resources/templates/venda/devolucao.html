@@ -1,0 +1,112 @@
+<html lang="pt-br"
+	  xmlns:th="http://www.thymeleaf.org"
+	  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	  layout:decorate="~{template}">
+
+<head>
+	<title>Devolucao de Venda</title>
+</head>
+
+<body>
+	<div layout:fragment="conteudo">
+		<div class="container-fluid" th:if="${venda != null}">
+
+			<div class="card mt-3 border-info">
+				<div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
+					<span><i class="bi bi-arrow-return-left"></i> Devolucao da Venda #<span th:text="${venda.id}"></span></span>
+					<a th:href="@{/venda/vendas/detalhe(id=${venda.id})}" class="btn btn-sm btn-outline-light">
+						<i class="bi bi-x"></i> Voltar
+					</a>
+				</div>
+				<div class="card-body">
+					<p>
+						<strong>Cliente:</strong>
+						<span th:text="${venda.cliente != null ? venda.cliente.nome : 'Consumidor final'}"></span>
+						&nbsp;|&nbsp;
+						<strong>Total:</strong>
+						<span th:text="${'R$ ' + #numbers.formatDecimal(venda.valorTotal, 1, 'POINT', 2, 'COMMA')}"></span>
+						&nbsp;|&nbsp;
+						<strong>Parcelada:</strong>
+						<span th:text="${venda.parcelado ? venda.totalParcelas + 'x (crediario)' : 'Nao'}"></span>
+					</p>
+
+					<form th:action="@{'/venda/devolucao/' + ${venda.id}}" method="post"
+						  onsubmit="return confirm('Confirmar a devolucao dos itens informados?');">
+						<table class="table table-sm align-middle">
+							<thead>
+								<tr>
+									<th>Produto</th>
+									<th class="text-center">Vendido</th>
+									<th class="text-center">Ja devolvido</th>
+									<th class="text-center">Disponivel</th>
+									<th class="text-end">Valor Unit.</th>
+									<th class="text-center" style="width: 140px;">Devolver</th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr th:each="it : ${itens}">
+									<td th:text="${it.descricao}"></td>
+									<td class="text-center" th:text="${it.quantidadeVendida}"></td>
+									<td class="text-center" th:text="${it.jaDevolvido}"></td>
+									<td class="text-center" th:text="${it.disponivel}"></td>
+									<td class="text-end"
+										th:text="${'R$ ' + #numbers.formatDecimal(it.valorUnitario, 1, 'POINT', 2, 'COMMA')}"></td>
+									<td class="text-center">
+										<input type="hidden" name="vendaItemIds" th:value="${it.vendaItemId}">
+										<input type="number" name="quantidades" class="form-control form-control-sm"
+											   value="0" min="0" th:max="${it.disponivel}"
+											   th:disabled="${it.disponivel == 0}">
+									</td>
+								</tr>
+							</tbody>
+						</table>
+
+						<div class="mb-3">
+							<label class="form-label">Motivo da devolucao</label>
+							<textarea name="motivo" class="form-control" rows="2" maxlength="500"></textarea>
+						</div>
+
+						<button type="submit" class="btn btn-warning">
+							<i class="bi bi-arrow-return-left"></i> Registrar Devolucao
+						</button>
+					</form>
+				</div>
+			</div>
+
+			<div class="card mt-3">
+				<div class="card-header">Devolucoes desta venda</div>
+				<div class="card-body p-0">
+					<table class="table table-sm mb-0">
+						<thead>
+							<tr>
+								<th>#</th>
+								<th>Data</th>
+								<th>Itens</th>
+								<th>Motivo</th>
+								<th class="text-end">Valor Devolvido</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr th:each="d : ${devolucoes}">
+								<td th:text="${d.id}"></td>
+								<td th:text="${#temporals.format(d.dataDevolucao, 'dd/MM/yyyy HH:mm')}"></td>
+								<td>
+									<span th:each="di,st : ${d.itens}"
+										  th:text="${di.produto.descricao + ' (' + di.quantidadeDevolvida + ')' + (!st.last ? ', ' : '')}"></span>
+								</td>
+								<td th:text="${d.motivo}"></td>
+								<td class="text-end"
+									th:text="${'R$ ' + #numbers.formatDecimal(d.valorDevolvido, 1, 'POINT', 2, 'COMMA')}"></td>
+							</tr>
+							<tr th:if="${devolucoes == null or devolucoes.isEmpty()}">
+								<td colspan="5" class="text-center text-muted">Nenhuma devolucao registrada.</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+			</div>
+
+		</div>
+	</div>
+</body>
+</html>

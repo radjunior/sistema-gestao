@@ -10,6 +10,7 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import br.com.gestao.entity.Caixa;
 import br.com.gestao.entity.Cliente;
 import br.com.gestao.entity.ConfiguracaoFinanceira;
 import br.com.gestao.entity.Estoque;
@@ -38,13 +39,15 @@ public class VendaService {
 	private final ConfiguracaoFinanceiraService configuracaoFinanceiraService;
 	private final CalculoFinanceiroService calculoFinanceiroService;
 	private final LogFinanceiroService logFinanceiroService;
+	private final CaixaService caixaService;
 
 	public VendaService(VendaRepository vendaRepository, ProdutoRepository produtoRepository,
 			EstoqueRepository estoqueRepository, ClienteRepository clienteRepository,
 			ContextoUsuarioService contextoUsuarioService,
 			ConfiguracaoFinanceiraService configuracaoFinanceiraService,
 			CalculoFinanceiroService calculoFinanceiroService,
-			LogFinanceiroService logFinanceiroService) {
+			LogFinanceiroService logFinanceiroService,
+			CaixaService caixaService) {
 		this.vendaRepository = vendaRepository;
 		this.produtoRepository = produtoRepository;
 		this.estoqueRepository = estoqueRepository;
@@ -53,6 +56,7 @@ public class VendaService {
 		this.configuracaoFinanceiraService = configuracaoFinanceiraService;
 		this.calculoFinanceiroService = calculoFinanceiroService;
 		this.logFinanceiroService = logFinanceiroService;
+		this.caixaService = caixaService;
 	}
 
 	public List<Venda> consultarTodas() {
@@ -319,6 +323,8 @@ public class VendaService {
 			throw new Exception("Venda marcada como parcelada mas sem parcelas geradas!");
 		}
 
+		Caixa caixa = caixaService.exigirCaixaAberto();
+
 		// Baixa no estoque
 		for (VendaItem item : venda.getItens()) {
 			Estoque estoque = estoqueRepository.findByProdutoId(item.getProduto().getId())
@@ -339,6 +345,8 @@ public class VendaService {
 		}
 		venda.setStatus(StatusVenda.FINALIZADA);
 		Venda salva = vendaRepository.save(venda);
+
+		caixaService.registrarVenda(caixa, salva);
 
 		logFinanceiroService.registrar("VENDA_FINALIZADA", null, null, salva.getValorTotal(),
 				"Venda #" + salva.getId()
