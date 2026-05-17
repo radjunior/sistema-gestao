@@ -39,6 +39,16 @@
 							<label class="form-label">Telefone</label>
 							<input class="form-control" name="telefone" th:value="${form.telefone}">
 						</div>
+						<div class="col-md-4">
+							<label class="form-label">Endereco (cupom)</label>
+							<input class="form-control" name="endereco" th:value="${form.endereco}"
+								   maxlength="200" placeholder="Rua, numero, bairro, cidade/UF">
+						</div>
+						<div class="col-md-2">
+							<label class="form-label">Largura cupom (mm)</label>
+							<input type="number" class="form-control" name="larguraCupomMm" min="40" max="120"
+								   th:value="${form.larguraCupomMm}" placeholder="80">
+						</div>
 						<div class="col-md-2">
 							<label class="form-label">Status</label>
 							<select class="form-select" name="status">

@@ -72,6 +72,8 @@ public class EmpresaAdminController extends DefaultController {
 		form.setCnpj(empresa.getCnpj());
 		form.setEmail(empresa.getEmail());
 		form.setTelefone(empresa.getTelefone());
+		form.setEndereco(empresa.getEndereco());
+		form.setLarguraCupomMm(empresa.getLarguraCupomMm());
 		form.setSlug(empresa.getSlug());
 		form.setStatus(empresa.getStatus());
 		form.setPlano(empresa.getPlano());

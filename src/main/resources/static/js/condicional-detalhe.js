@@ -1,5 +1,15 @@
 import { resolverCodigoBarra } from "./scanner.js";
 
+// Apos abrir uma condicional, abre o cupom para impressao automaticamente.
+(function () {
+	const params = new URLSearchParams(window.location.search);
+	if (params.get("cupom") !== "1") return;
+	const btn = document.getElementById("btn-cupom");
+	if (btn && btn.href) {
+		window.open(btn.href, "_blank");
+	}
+})();
+
 // Autocomplete + bipagem para adicionar produto numa condicional ja aberta.
 (function () {
 	const input = document.getElementById("cond-add-busca");

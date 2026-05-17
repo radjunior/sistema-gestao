@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
+<head>
+	<meta charset="UTF-8">
+	<title th:text="'Cupom Condicional #' + ${condicional.id}">Cupom Condicional</title>
+	<style th:inline="text">
+		:root {
+			--cupom-mm: [[${empresa.larguraCupomMm}]];
+		}
+		* { box-sizing: border-box; }
+		html, body {
+			margin: 0;
+			padding: 0;
+			background: #f0f0f0;
+		}
+		.cupom {
+			width: calc(var(--cupom-mm) * 1mm);
+			margin: 12px auto;
+			background: #fff;
+			padding: 6px 8px;
+			font-family: "Courier New", monospace;
+			font-size: 12px;
+			line-height: 1.35;
+			color: #000;
+		}
+		.center { text-align: center; }
+		.bold { font-weight: bold; }
+		.sep {
+			border: none;
+			border-top: 1px dashed #000;
+			margin: 6px 0;
+		}
+		.row { display: flex; justify-content: space-between; gap: 6px; }
+		.empresa-nome { font-size: 14px; font-weight: bold; }
+		table { width: 100%; border-collapse: collapse; }
+		td, th { text-align: left; vertical-align: top; padding: 1px 0; }
+		.num { text-align: right; white-space: nowrap; }
+		.itens td { font-size: 11px; }
+		.acoes {
+			text-align: center;
+			margin: 14px auto;
+			width: calc(var(--cupom-mm) * 1mm);
+		}
+		.acoes button {
+			padding: 8px 14px;
+			margin: 0 4px;
+			cursor: pointer;
+		}
+		@media print {
+			html, body { background: #fff; }
+			.cupom { margin: 0; padding: 0 2mm; width: auto; }
+			.acoes { display: none; }
+			@page { margin: 2mm; }
+		}
+	</style>
+</head>
+<body>
+
+<div class="acoes">
+	<button type="button" onclick="window.print()">Imprimir</button>
+	<button type="button" onclick="window.history.back()">Voltar</button>
+</div>
+
+<div class="cupom">
+	<div class="center">
+		<div class="empresa-nome" th:text="${empresa.nomeFantasia}">Empresa</div>
+		<div th:if="${empresa.razaoSocial != null}" th:text="${empresa.razaoSocial}"></div>
+		<div th:if="${empresa.cnpj != null}" th:text="'CNPJ: ' + ${empresa.cnpj}"></div>
+		<div th:if="${empresa.endereco != null}" th:text="${empresa.endereco}"></div>
+		<div th:if="${empresa.telefone != null}" th:text="'Tel: ' + ${empresa.telefone}"></div>
+		<div th:if="${empresa.email != null}" th:text="${empresa.email}"></div>
+	</div>
+
+	<hr class="sep">
+
+	<div class="center bold" th:text="'COMPROVANTE DE CONDICIONAL #' + ${condicional.id}">
+		COMPROVANTE DE CONDICIONAL
+	</div>
+	<div class="center" style="font-size: 11px;">
+		(Documento sem valor fiscal)
+	</div>
+
+	<hr class="sep">
+
+	<div class="row">
+		<span>Emitido em:</span>
+		<span th:text="${#temporals.format(dataImpressao, 'dd/MM/yyyy HH:mm')}"></span>
+	</div>
+	<div class="row">
+		<span>Saida:</span>
+		<span th:text="${#temporals.format(condicional.dataSaida, 'dd/MM/yyyy HH:mm')}"></span>
+	</div>
+	<div class="row">
+		<span>Devolucao prevista:</span>
+		<span class="bold" th:text="${#temporals.format(condicional.dataPrevistaDevolucao, 'dd/MM/yyyy')}"></span>
+	</div>
+	<div class="row">
+		<span>Atendente:</span>
+		<span th:text="${usuarioGerador}"></span>
+	</div>
+
+	<hr class="sep">
+
+	<div class="bold">CLIENTE</div>
+	<div th:text="${condicional.cliente.nome}"></div>
+	<div th:if="${condicional.cliente.cpf != null}" th:text="'CPF: ' + ${condicional.cliente.cpf}"></div>
+	<div th:if="${condicional.cliente.telefone != null}" th:text="'Tel: ' + ${condicional.cliente.telefone}"></div>
+
+	<hr class="sep">
+
+	<div class="bold">PRODUTOS</div>
+	<table class="itens">
+		<thead>
+			<tr>
+				<th>Produto</th>
+				<th class="num">Qtd</th>
+				<th class="num">Unit.</th>
+				<th class="num">Total</th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr th:each="i : ${condicional.itens}">
+				<td th:text="${i.produto.descricao}"></td>
+				<td class="num" th:text="${i.quantidade}"></td>
+				<td class="num" th:text="${#numbers.formatDecimal(i.precoUnitario, 1, 'POINT', 2, 'COMMA')}"></td>
+				<td class="num"
+					th:text="${#numbers.formatDecimal(i.precoUnitario.multiply(new java.math.BigDecimal(i.quantidade)), 1, 'POINT', 2, 'COMMA')}"></td>
+			</tr>
+		</tbody>
+	</table>
+
+	<hr class="sep">
+
+	<div class="row bold" style="font-size: 13px;">
+		<span>TOTAL</span>
+		<span th:text="'R$ ' + ${#numbers.formatDecimal(total, 1, 'POINT', 2, 'COMMA')}"></span>
+	</div>
+
+	<div th:if="${condicional.observacao != null and !condicional.observacao.isEmpty()}">
+		<hr class="sep">
+		<div class="bold">OBSERVACAO</div>
+		<div th:text="${condicional.observacao}"></div>
+	</div>
+
+	<hr class="sep">
+
+	<div class="center" style="font-size: 11px;">
+		Os produtos acima foram enviados em condicional.<br>
+		Devolver ou acertar ate a data prevista.<br>
+		Obrigado!
+	</div>
+</div>
+
+<script>
+	window.addEventListener("load", function () {
+		window.print();
+	});
+</script>
+
+</body>
+</html>

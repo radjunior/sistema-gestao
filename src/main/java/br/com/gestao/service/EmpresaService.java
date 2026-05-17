@@ -49,6 +49,9 @@ public class EmpresaService {
 		empresa.setCnpj(textoOuNull(form.getCnpj()));
 		empresa.setEmail(textoOuNull(form.getEmail()));
 		empresa.setTelefone(textoOuNull(form.getTelefone()));
+		empresa.setEndereco(textoOuNull(form.getEndereco()));
+		empresa.setLarguraCupomMm(form.getLarguraCupomMm() != null && form.getLarguraCupomMm() > 0
+				? form.getLarguraCupomMm() : 80);
 		empresa.setSlug(form.getSlug().trim().toLowerCase());
 		empresa.setStatus(valorPadrao(form.getStatus(), "ATIVA"));
 		empresa.setPlano(valorPadrao(form.getPlano(), "BASICO"));

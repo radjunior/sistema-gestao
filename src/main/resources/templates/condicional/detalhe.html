@@ -23,9 +23,15 @@
 							<span th:case="'CANCELADA'" class="badge bg-secondary" th:text="${condicional.status.descricao}"></span>
 						</span>
 					</div>
-					<a th:href="@{/condicionais}" class="btn btn-sm btn-outline-secondary">
-						<i class="bi bi-arrow-left"></i> Voltar
-					</a>
+					<div class="d-flex gap-2">
+						<a th:href="@{/condicionais/{id}/cupom(id=${condicional.id})}" target="_blank"
+						   class="btn btn-sm btn-outline-primary" id="btn-cupom">
+							<i class="bi bi-printer"></i> Imprimir cupom
+						</a>
+						<a th:href="@{/condicionais}" class="btn btn-sm btn-outline-secondary">
+							<i class="bi bi-arrow-left"></i> Voltar
+						</a>
+					</div>
 				</div>
 				<div class="card-body row g-3">
 					<div class="col-md-4">

@@ -21,8 +21,10 @@ import br.com.gestao.entity.Produto;
 import br.com.gestao.entity.Venda;
 import jakarta.persistence.EntityNotFoundException;
 import br.com.gestao.entity.enums.StatusCondicional;
+import br.com.gestao.entity.Usuario;
 import br.com.gestao.repository.ClienteRepository;
 import br.com.gestao.repository.ProdutoRepository;
+import br.com.gestao.repository.UsuarioRepository;
 import br.com.gestao.service.CondicionalService;
 import br.com.gestao.service.CondicionalService.CondicionalForm;
 import br.com.gestao.service.CondicionalService.CondicionalItemForm;
@@ -39,18 +41,23 @@ public class CondicionalController extends DefaultController {
 	private static final String PAGINA_TIMELINE_CLIENTE = "condicional/timeline-cliente";
 	private static final String PAGINA_TIMELINE_PRODUTO = "condicional/timeline-produto";
 
+	private static final String PAGINA_CUPOM = "cupom/condicional";
+
 	private final CondicionalService condicionalService;
 	private final ClienteRepository clienteRepository;
 	private final ProdutoRepository produtoRepository;
+	private final UsuarioRepository usuarioRepository;
 	private final ContextoUsuarioService contextoUsuarioService;
 
 	public CondicionalController(CondicionalService condicionalService,
 			ClienteRepository clienteRepository,
 			ProdutoRepository produtoRepository,
+			UsuarioRepository usuarioRepository,
 			ContextoUsuarioService contextoUsuarioService) {
 		this.condicionalService = condicionalService;
 		this.clienteRepository = clienteRepository;
 		this.produtoRepository = produtoRepository;
+		this.usuarioRepository = usuarioRepository;
 		this.contextoUsuarioService = contextoUsuarioService;
 	}
 
@@ -122,7 +129,7 @@ public class CondicionalController extends DefaultController {
 
 			Condicional salva = condicionalService.abrir(form);
 			showSucesso(redirectAttributes, "Condicional #" + salva.getId() + " aberta com sucesso.");
-			return "redirect:/condicionais/" + salva.getId();
+			return "redirect:/condicionais/" + salva.getId() + "?cupom=1";
 		} catch (Exception e) {
 			showError(redirectAttributes, e.getMessage());
 			return "redirect:/condicionais/nova";
@@ -135,6 +142,31 @@ public class CondicionalController extends DefaultController {
 		model.addAttribute("condicional", cond);
 		model.addAttribute("hoje", LocalDate.now());
 		return PAGINA_DETALHE;
+	}
+
+	@GetMapping("/{id}/cupom")
+	public String cupom(Model model, @PathVariable Long id) {
+		Long empresaId = contextoUsuarioService.getEmpresaIdObrigatoria();
+		Condicional cond = condicionalService.consultarPorId(id);
+
+		String usuarioGerador = "—";
+		if (cond.getCriadoPor() != null) {
+			usuarioGerador = usuarioRepository.findByIdAndEmpresaId(cond.getCriadoPor(), empresaId)
+					.map(Usuario::getNomeCompleto)
+					.orElse("—");
+		}
+
+		BigDecimal total = BigDecimal.ZERO;
+		for (var i : cond.getItens()) {
+			total = total.add(i.getPrecoUnitario().multiply(BigDecimal.valueOf(i.getQuantidade())));
+		}
+
+		model.addAttribute("condicional", cond);
+		model.addAttribute("empresa", cond.getEmpresa());
+		model.addAttribute("usuarioGerador", usuarioGerador);
+		model.addAttribute("total", total);
+		model.addAttribute("dataImpressao", java.time.LocalDateTime.now());
+		return PAGINA_CUPOM;
 	}
 
 	@PostMapping("/{id}/movimentar")

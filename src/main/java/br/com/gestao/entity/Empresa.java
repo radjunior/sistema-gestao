@@ -30,6 +30,12 @@ public class Empresa extends EntityAudit {
 	@Column(length = 20)
 	private String telefone;
 
+	@Column(length = 200)
+	private String endereco;
+
+	@Column(name = "largura_cupom_mm")
+	private Integer larguraCupomMm = 80;
+
 	@Column(nullable = false, unique = true, length = 80)
 	private String slug;
 
@@ -92,6 +98,22 @@ public class Empresa extends EntityAudit {
 
 	public void setTelefone(String telefone) {
 		this.telefone = telefone;
+	}
+
+	public String getEndereco() {
+		return endereco;
+	}
+
+	public void setEndereco(String endereco) {
+		this.endereco = endereco;
+	}
+
+	public Integer getLarguraCupomMm() {
+		return larguraCupomMm != null ? larguraCupomMm : 80;
+	}
+
+	public void setLarguraCupomMm(Integer larguraCupomMm) {
+		this.larguraCupomMm = larguraCupomMm;
 	}
 
 	public String getSlug() {
